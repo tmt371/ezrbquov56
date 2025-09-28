@@ -139,7 +139,8 @@ class App {
             quoteService,
             fileService,
             quickQuoteView,
-            detailConfigView
+            detailConfigView,
+            calculationService // BUG FIX: Added missing dependency injection
         });
     }
 

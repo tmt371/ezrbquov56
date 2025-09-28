@@ -69,6 +69,7 @@ export class UIService {
             surchargeFee: null,
 
             // Bottom Section Values
+            totalSumForRbTime: null, // Value for cell A17
             firstRbPrice: null,
             disRbPrice: null,
             singleprofit: null,

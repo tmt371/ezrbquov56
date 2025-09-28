@@ -130,7 +130,7 @@ export class RightPanelComponent {
         this.f2.b16_surchargeFee.textContent = formatIntegerCurrency(f2State.surchargeFee);
         
         // Render bottom section (mixed formatting)
-        this.f2.a17_totalSum.textContent = formatValue(uiState.quoteData.summary.totalSum?.toFixed(2));
+        this.f2.a17_totalSum.textContent = formatValue(f2State.totalSumForRbTime);
         this.f2.c17_1stRbPrice.textContent = formatDecimalCurrency(f2State.firstRbPrice);
         this.f2.b19_disRbPrice.textContent = formatDecimalCurrency(f2State.disRbPrice);
         this.f2.b20_singleprofit.textContent = formatDecimalCurrency(f2State.singleprofit);

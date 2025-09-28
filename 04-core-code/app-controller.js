@@ -6,14 +6,14 @@ const AUTOSAVE_STORAGE_KEY = 'quoteAutoSaveData';
 const AUTOSAVE_INTERVAL_MS = 60000;
 
 export class AppController {
-    constructor({ eventAggregator, uiService, quoteService, fileService, quickQuoteView, detailConfigView }) {
+    constructor({ eventAggregator, uiService, quoteService, fileService, quickQuoteView, detailConfigView, calculationService }) {
         this.eventAggregator = eventAggregator;
         this.uiService = uiService;
         this.quoteService = quoteService;
         this.fileService = fileService;
-        
         this.quickQuoteView = quickQuoteView;
         this.detailConfigView = detailConfigView;
+        this.calculationService = calculationService; // BUG FIX: Accept and store the injected service
 
         this.f2InputSequence = [
             'f2-b10-wifi-qty', 'f2-b13-delivery-qty', 'f2-b14-install-qty',
