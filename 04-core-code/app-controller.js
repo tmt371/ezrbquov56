@@ -24,7 +24,7 @@ export class AppController {
         this._subscribeQuickQuoteEvents();
         this._subscribeDetailViewEvents();
         this._subscribeGlobalEvents();
-        this._subscribeF2Events(); // New event subscriptions
+        this._subscribeF2Events();
         
         this._startAutoSave();
     }
@@ -100,11 +100,12 @@ export class AppController {
 
     _subscribeF2Events() {
         this.eventAggregator.subscribe('f2TabActivated', () => this._calculateF2Summary());
-        this.eventAggregator.subscribe('f2QtyChanged', (data) => this._handleF2QtyChange(data));
+        this.eventAggregator.subscribe('f2QtyChanged', (data) => this._handleF2ValueChange(data, 'qty'));
+        this.eventAggregator.subscribe('f2ValueChanged', (data) => this._handleF2ValueChange(data, 'value'));
     }
     
-    _handleF2QtyChange({ id, value }) {
-        const qtyValue = value === '' ? null : parseInt(value, 10);
+    _handleF2ValueChange({ id, value }, type) {
+        const numericValue = value === '' ? null : parseFloat(value);
         let keyToUpdate = null;
 
         switch (id) {
@@ -112,37 +113,28 @@ export class AppController {
             case 'f2-b13-delivery-qty': keyToUpdate = 'deliveryQty'; break;
             case 'f2-b14-install-qty': keyToUpdate = 'installQty'; break;
             case 'f2-b15-removal-qty': keyToUpdate = 'removalQty'; break;
+            case 'f2-b17-mul-times': keyToUpdate = 'mulTimes'; break;
+            case 'f2-b18-discount': keyToUpdate = 'discount'; break;
         }
 
         if (keyToUpdate) {
-            this.uiService.setF2Value(keyToUpdate, qtyValue);
+            this.uiService.setF2Value(keyToUpdate, numericValue);
             this._calculateF2Summary();
         }
     }
     
     _calculateF2Summary() {
         console.log("--- F2 Summary Calculation Started ---");
-
         // --- Pre-calculation Step ---
         this.detailConfigView.driveAccessoriesView.recalculateAllDriveAccessoryPrices();
         this.detailConfigView.dualChainView.recalculateDualPrice();
         
         const uiState = this.uiService.getState();
-        console.log("Reading source values from UI State:", {
-            summaryWinderPrice: uiState.summaryWinderPrice,
-            dualPrice: uiState.dualPrice,
-            summaryMotorPrice: uiState.summaryMotorPrice,
-            summaryRemotePrice: uiState.summaryRemotePrice,
-            summaryChargerPrice: uiState.summaryChargerPrice,
-            summaryCordPrice: uiState.summaryCordPrice,
-            f2Qtys: {
-                wifi: uiState.f2.wifiQty,
-                delivery: uiState.f2.deliveryQty,
-                install: uiState.f2.installQty,
-                removal: uiState.f2.removalQty
-            }
-        });
+        const quoteData = this.quoteService.getQuoteData();
+        const totalSumFromQuickQuote = quoteData.summary.totalSum || 0;
         
+        this.uiService.setF2Value('totalSumForRbTime', totalSumFromQuickQuote.toFixed(2));
+
         const f2State = uiState.f2;
         const UNIT_PRICES = {
             wifi: 200,
@@ -162,7 +154,10 @@ export class AppController {
         const deliveryQty = f2State.deliveryQty || 0;
         const installQty = f2State.installQty || 0;
         const removalQty = f2State.removalQty || 0;
+        const mulTimes = f2State.mulTimes || 0;
+        const discount = f2State.discount || 0;
 
+        // Perform calculations based on new logic
         const wifiSum = wifiQty * UNIT_PRICES.wifi;
         const deliveryFee = deliveryQty * UNIT_PRICES.delivery;
         const installFee = installQty * UNIT_PRICES.install;
@@ -171,8 +166,13 @@ export class AppController {
         const acceSum = winderPrice + dualPrice;
         const eAcceSum = motorPrice + remotePrice + chargerPrice + cordPrice + wifiSum;
         const surchargeFee = deliveryFee + installFee + removalFee;
+        
+        const firstRbPrice = totalSumFromQuickQuote * mulTimes;
+        const discountAmount = firstRbPrice * (discount / 100);
+        // Round up to the second decimal place
+        const disRbPrice = Math.ceil(discountAmount * 100) / 100;
 
-        console.log("Calculated F2 values:", { acceSum, eAcceSum, surchargeFee, wifiSum, deliveryFee, installFee, removalFee });
+        const sumPrice = acceSum + eAcceSum + surchargeFee + disRbPrice;
 
         this.uiService.setF2Value('wifiSum', wifiSum);
         this.uiService.setF2Value('deliveryFee', deliveryFee);
@@ -181,6 +181,9 @@ export class AppController {
         this.uiService.setF2Value('acceSum', acceSum);
         this.uiService.setF2Value('eAcceSum', eAcceSum);
         this.uiService.setF2Value('surchargeFee', surchargeFee);
+        this.uiService.setF2Value('firstRbPrice', firstRbPrice);
+        this.uiService.setF2Value('disRbPrice', disRbPrice);
+        this.uiService.setF2Value('sumPrice', sumPrice);
         
         this._publishStateChange();
         console.log("--- F2 Summary Calculation Finished ---");

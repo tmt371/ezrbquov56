@@ -30,24 +30,25 @@ export class RightPanelComponent {
             });
         }
 
-        // Add event listeners for all QTY input fields
-        const qtyInputs = [
-            this.f2.b10_wifiQty,
-            this.f2.b13_deliveryQty,
-            this.f2.b14_installQty,
-            this.f2.b15_removalQty
-        ];
-
-        qtyInputs.forEach(input => {
-            if (input) {
-                input.addEventListener('input', (event) => {
-                    this.eventAggregator.publish('f2QtyChanged', {
+        // --- Event Listeners for F2 Inputs ---
+        const setupInputListener = (inputElement, eventName) => {
+            if (inputElement) {
+                inputElement.addEventListener('input', (event) => {
+                    this.eventAggregator.publish(eventName, {
                         id: event.target.id,
                         value: event.target.value
                     });
                 });
             }
-        });
+        };
+
+        // Listen for QTY changes
+        const qtyInputs = [ this.f2.b10_wifiQty, this.f2.b13_deliveryQty, this.f2.b14_installQty, this.f2.b15_removalQty ];
+        qtyInputs.forEach(input => setupInputListener(input, 'f2QtyChanged'));
+
+        // Listen for other value changes (mul-times, discount)
+        const valueInputs = [ this.f2.b17_mulTimes, this.f2.b18_discount ];
+        valueInputs.forEach(input => setupInputListener(input, 'f2ValueChanged'));
     }
 
     _cacheF2Elements() {
@@ -70,7 +71,8 @@ export class RightPanelComponent {
             b15_removalQty: query('#f2-b15-removal-qty'),
             c15_removalFee: query('#f2-c15-removal-fee'),
             b16_surchargeFee: query('#f2-b16-surcharge-fee'),
-            b17_mulPrice: query('#f2-b17-mul-price'),
+            a17_totalSum: query('#f2-a17-total-sum'),
+            b17_mulTimes: query('#f2-b17-mul-times'),
             c17_1stRbPrice: query('#f2-c17-1st-rb-price'),
             b18_discount: query('#f2-b18-discount'),
             b19_disRbPrice: query('#f2-b19-dis-rb-price'),
@@ -91,43 +93,45 @@ export class RightPanelComponent {
         if (!uiState || !uiState.f2 || !this.f2.b2_winderPrice) return;
         
         const f2State = uiState.f2;
-        const formatCurrency = (value) => (typeof value === 'number') ? `$${value.toFixed(2)}` : '$';
+        const formatIntegerCurrency = (value) => (typeof value === 'number') ? `$${value.toFixed(0)}` : '$';
+        const formatDecimalCurrency = (value) => (typeof value === 'number') ? `$${value.toFixed(2)}` : '$';
         const formatValue = (value) => (value !== null && value !== undefined) ? value : '';
 
-        // Render values from main UI state
-        this.f2.b2_winderPrice.textContent = formatCurrency(uiState.summaryWinderPrice);
-        this.f2.b3_dualPrice.textContent = formatCurrency(uiState.dualPrice);
-        this.f2.b6_motorPrice.textContent = formatCurrency(uiState.summaryMotorPrice);
-        this.f2.b7_remotePrice.textContent = formatCurrency(uiState.summaryRemotePrice);
-        this.f2.b8_chargerPrice.textContent = formatCurrency(uiState.summaryChargerPrice);
-        this.f2.b9_cordPrice.textContent = formatCurrency(uiState.summaryCordPrice);
+        // Render values from main UI state (formatted as integers)
+        this.f2.b2_winderPrice.textContent = formatIntegerCurrency(uiState.summaryWinderPrice);
+        this.f2.b3_dualPrice.textContent = formatIntegerCurrency(uiState.dualPrice);
+        this.f2.b6_motorPrice.textContent = formatIntegerCurrency(uiState.summaryMotorPrice);
+        this.f2.b7_remotePrice.textContent = formatIntegerCurrency(uiState.summaryRemotePrice);
+        this.f2.b8_chargerPrice.textContent = formatIntegerCurrency(uiState.summaryChargerPrice);
+        this.f2.b9_cordPrice.textContent = formatIntegerCurrency(uiState.summaryCordPrice);
 
-        // Render values from F2-specific state
-        this.f2.b4_acceSum.textContent = formatCurrency(f2State.acceSum);
-        this.f2.c10_wifiSum.textContent = formatCurrency(f2State.wifiSum);
-        this.f2.b11_eAcceSum.textContent = formatCurrency(f2State.eAcceSum);
-        this.f2.c13_deliveryFee.textContent = formatCurrency(f2State.deliveryFee);
-        this.f2.c14_installFee.textContent = formatCurrency(f2State.installFee);
-        this.f2.c15_removalFee.textContent = formatCurrency(f2State.removalFee);
-        this.f2.b16_surchargeFee.textContent = formatCurrency(f2State.surchargeFee);
+        // Render values from F2-specific state (formatted as integers)
+        this.f2.b4_acceSum.textContent = formatIntegerCurrency(f2State.acceSum);
+        this.f2.c10_wifiSum.textContent = formatIntegerCurrency(f2State.wifiSum);
+        this.f2.b11_eAcceSum.textContent = formatIntegerCurrency(f2State.eAcceSum);
+        this.f2.c13_deliveryFee.textContent = formatIntegerCurrency(f2State.deliveryFee);
+        this.f2.c14_installFee.textContent = formatIntegerCurrency(f2State.installFee);
+        this.f2.c15_removalFee.textContent = formatIntegerCurrency(f2State.removalFee);
+        this.f2.b16_surchargeFee.textContent = formatIntegerCurrency(f2State.surchargeFee);
         
-        // Render bottom section
-        this.f2.b17_mulPrice.textContent = formatValue(f2State.mulPrice);
-        this.f2.c17_1stRbPrice.textContent = formatValue(f2State.firstRbPrice);
-        this.f2.b18_discount.textContent = formatValue(f2State.discount);
-        this.f2.b19_disRbPrice.textContent = formatValue(f2State.disRbPrice);
-        this.f2.b20_singleprofit.textContent = formatValue(f2State.singleprofit);
-        this.f2.b21_rbProfit.textContent = formatValue(f2State.rbProfit);
-        this.f2.b22_sumprice.textContent = formatValue(f2State.sumprice);
-        this.f2.b23_sumprofit.textContent = formatValue(f2State.sumprofit);
-        this.f2.b24_gst.textContent = formatValue(f2State.gst);
-        this.f2.b25_netprofit.textContent = formatValue(f2State.netprofit);
+        // Render bottom section (mixed formatting)
+        this.f2.a17_totalSum.textContent = formatValue(f2State.totalSumForRbTime); // Display raw totalSum from quoteData
+        this.f2.c17_1stRbPrice.textContent = formatDecimalCurrency(f2State.firstRbPrice);
+        this.f2.b19_disRbPrice.textContent = formatDecimalCurrency(f2State.disRbPrice);
+        this.f2.b20_singleprofit.textContent = formatDecimalCurrency(f2State.singleprofit);
+        this.f2.b21_rbProfit.textContent = formatDecimalCurrency(f2State.rbProfit);
+        this.f2.b22_sumprice.textContent = formatDecimalCurrency(f2State.sumPrice);
+        this.f2.b23_sumprofit.textContent = formatDecimalCurrency(f2State.sumProfit);
+        this.f2.b24_gst.textContent = formatDecimalCurrency(f2State.gst);
+        this.f2.b25_netprofit.textContent = formatDecimalCurrency(f2State.netProfit);
 
         // Update input values from state
-        this.f2.b10_wifiQty.value = f2State.wifiQty || '';
-        this.f2.b13_deliveryQty.value = f2State.deliveryQty || '';
-        this.f2.b14_installQty.value = f2State.installQty || '';
-        this.f2.b15_removalQty.value = f2State.removalQty || '';
+        this.f2.b10_wifiQty.value = formatValue(f2State.wifiQty);
+        this.f2.b13_deliveryQty.value = formatValue(f2State.deliveryQty);
+        this.f2.b14_installQty.value = formatValue(f2State.installQty);
+        this.f2.b15_removalQty.value = formatValue(f2State.removalQty);
+        this.f2.b17_mulTimes.value = formatValue(f2State.mulTimes);
+        this.f2.b18_discount.value = formatValue(f2State.discount);
     }
 
     _setActiveTab(clickedButton) {

@@ -92,3 +92,14 @@
     color: #c0392b; /* Red */
     background-color: #f8d7da; /* Light pink */
 }
+
+/* Hide Number Input Spinners */
+.grid-cell-input[type=number]::-webkit-outer-spin-button,
+.grid-cell-input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.grid-cell-input[type=number] {
+  -moz-appearance: textfield;
+}

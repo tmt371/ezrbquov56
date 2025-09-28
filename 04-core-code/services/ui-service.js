@@ -49,11 +49,13 @@ export class UIService {
 
     _initializeF2SummaryState() {
         this.state.f2 = {
-            // Inputs (QTY)
+            // Inputs (QTY & values)
             wifiQty: null,
             deliveryQty: null,
             installQty: null,
             removalQty: null,
+            mulTimes: null,
+            discount: null,
             
             // Calculated Values from Inputs
             wifiSum: null,
@@ -67,9 +69,7 @@ export class UIService {
             surchargeFee: null,
 
             // Bottom Section Values
-            mulPrice: null,
             firstRbPrice: null,
-            discount: null,
             disRbPrice: null,
             singleprofit: null,
             rbProfit: null,

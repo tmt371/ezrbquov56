@@ -133,13 +133,11 @@ export class LeftPanelComponent {
         if (this.lfButton) this.lfButton.classList.toggle('active', isLFSelectMode);
         if (this.lfDelButton) this.lfDelButton.classList.toggle('active', isLFDeleteMode);
 
-        // [BUG FIX] Changed variable name and updated check from 'BO1' to 'B2'
         const hasB2 = rollerBlindItems.some(item => item.fabricType === 'B2');
         const hasLFModified = lfModifiedRowIndexes.size > 0;
 
         if (this.locationButton) this.locationButton.disabled = isAnyK2ModeActive;
         if (this.fabricColorButton) this.fabricColorButton.disabled = activeEditMode !== null && !isFCMode;
-        // [BUG FIX] Updated condition to check for hasB2 instead of hasBO1
         if (this.lfButton) this.lfButton.disabled = (activeEditMode !== null && !isLFSelectMode) || !hasB2;
         if (this.lfDelButton) this.lfDelButton.disabled = (activeEditMode !== null && !isLFDeleteMode) || !hasLFModified;
 
@@ -154,7 +152,7 @@ export class LeftPanelComponent {
         if (this.k3OiButton) this.k3OiButton.disabled = k3SubButtonsDisabled;
         if (this.k3LrButton) this.k3LrButton.disabled = k3SubButtonsDisabled;
 
-        const formatPrice = (price) => (typeof price === 'number') ? `$${price.toFixed(2)}` : '';
+        const formatPrice = (price) => (typeof price === 'number') ? `$${price.toFixed(0)}` : '';
 
         // --- K4 (Drive/Accessories) Button, Display, and Counter States ---
         const k4Buttons = [
@@ -221,7 +219,7 @@ export class LeftPanelComponent {
             }
         }
         if (this.k5DualPriceValue) {
-            const newText = (typeof dualPrice === 'number') ? `$${dualPrice.toFixed(2)}` : '';
+            const newText = (typeof dualPrice === 'number') ? `$${dualPrice.toFixed(0)}` : '';
             if (this.k5DualPriceValue.textContent !== newText) {
                 this.k5DualPriceValue.textContent = newText;
             }
