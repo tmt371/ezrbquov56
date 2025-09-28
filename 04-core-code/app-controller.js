@@ -136,8 +136,9 @@ export class AppController {
 
     _focusNextF2Input(currentId) {
         const currentIndex = this.f2InputSequence.indexOf(currentId);
-        if (currentIndex > -1 && currentIndex < this.f2InputSequence.length - 1) {
-            const nextElementId = this.f2InputSequence[currentIndex + 1];
+        if (currentIndex > -1) {
+            const nextIndex = (currentIndex + 1) % this.f2InputSequence.length;
+            const nextElementId = this.f2InputSequence[nextIndex];
             this.eventAggregator.publish('focusElement', { elementId: nextElementId });
         }
     }
@@ -191,7 +192,6 @@ export class AppController {
             (f2State.removalFeeExcluded ? 0 : removalFee);
         
         const firstRbPrice = totalSumFromQuickQuote * mulTimes;
-        // Formula FIX: Calculate discounted price instead of discount amount
         const disRbPriceValue = firstRbPrice * (1 - (discount / 100));
         const disRbPrice = Math.round(disRbPriceValue * 100) / 100;
         

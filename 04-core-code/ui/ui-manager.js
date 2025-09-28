@@ -68,7 +68,7 @@ export class UIManager {
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
         this.leftPanelComponent.render(state.ui, state.quoteData);
-        this.rightPanelComponent.render(state.ui); // BUG FIX: Added missing render call
+        this.rightPanelComponent.render(state.ui);
         
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
@@ -76,34 +76,37 @@ export class UIManager {
     }
 
     _adjustLeftPanelLayout() {
+        const leftPanel = this.leftPanelElement;
         const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
-        const leftPanel = this.leftPanelElement;
+        const virtualKeyboard = document.getElementById('numeric-keyboard');
+        const typeKey = document.getElementById('key-type');
+        const zeroKey = document.getElementById('key-0');
 
-        if (!appContainer || !numericKeyboard || !leftPanel) return;
+        if (!leftPanel || !appContainer || !numericKeyboard || !virtualKeyboard || !typeKey || !zeroKey) return;
 
-        // --- Height Calculation ---
-        if (this.cachedLeftPanelHeight === 0 && !numericKeyboard.classList.contains('is-collapsed')) {
-            const key7 = document.getElementById('key-7');
-            if (key7) {
-                const key7Rect = key7.getBoundingClientRect();
-                const keyHeight = key7Rect.height;
-                const gap = 5;
-                this.cachedLeftPanelHeight = (keyHeight * 4) + (gap * 3);
-            }
-        }
-        const panelHeight = this.cachedLeftPanelHeight || 155;
-
-        // --- Top Position Calculation ---
         const containerRect = appContainer.getBoundingClientRect();
-        const keyboardTopPadding = 38;
-        const keyboardBottomPadding = 8;
-        const keyboardExpandedHeight = panelHeight + keyboardTopPadding + keyboardBottomPadding;
-        const keyboardLogicalTop = containerRect.bottom - keyboardExpandedHeight;
+        const keyboardRect = numericKeyboard.getBoundingClientRect();
+        const virtualKeyboardRect = virtualKeyboard.getBoundingClientRect();
+        const typeKeyRect = typeKey.getBoundingClientRect();
+        const zeroKeyRect = zeroKey.getBoundingClientRect();
+
+        // --- Width Calculation ---
+        // Calculate the center of the 'TYPE' key relative to the viewport
+        const typeKeyCenter = typeKeyRect.left + (typeKeyRect.width / 2);
+        // The panel's width is the distance from the left edge of the viewport to the key's center
+        const dynamicWidth = typeKeyCenter;
         
-        // --- Apply ONLY Vertical Styles ---
-        leftPanel.style.top = keyboardLogicalTop + 'px';
-        leftPanel.style.height = panelHeight + 'px';
+        // --- Height & Top Calculation ---
+        // The panel's height is the distance from the top of the virtual keyboard grid to the bottom of the '0' key
+        const dynamicHeight = zeroKeyRect.bottom - virtualKeyboardRect.top;
+        // The panel's top position is aligned with the top of the numeric keyboard panel
+        const dynamicTop = keyboardRect.top;
+
+        // Apply dynamic styles
+        leftPanel.style.width = `${dynamicWidth}px`;
+        leftPanel.style.height = `${dynamicHeight}px`;
+        leftPanel.style.top = `${dynamicTop}px`;
     }
 
     _initializeLeftPanelLayout() {
@@ -120,9 +123,6 @@ export class UIManager {
             }
         }).observe(this.numericKeyboardPanel, { attributes: true, attributeFilter: ['class'] });
 
-        // [BUG FIX] Add a direct call on initialization to ensure the panel is
-        // correctly positioned on page load, before any user interaction.
-        // Use setTimeout to ensure the main thread is free and DOM is fully ready for measurement.
         setTimeout(() => this._adjustLeftPanelLayout(), 0);
     }
     
@@ -132,7 +132,8 @@ export class UIManager {
             this.leftPanelElement.classList.toggle('is-expanded', isExpanded);
 
             if (isExpanded) {
-                setTimeout(() => this._adjustLeftPanelLayout(), 0);
+                // Use a short timeout to ensure the transition has started and all elements are visible for measurement
+                setTimeout(() => this._adjustLeftPanelLayout(), 50);
             }
         }
     }

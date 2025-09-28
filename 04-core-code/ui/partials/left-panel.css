@@ -11,11 +11,9 @@
 }
 #left-panel {
     position: fixed;
-    /* [REFACTORED] Retain fixed width and left position for stable horizontal behavior. */
-    width: 400px; 
     left: 0; 
-    /* [REFACTORED] Removed top and bottom properties. The panel's vertical position and height
-       are now dynamically set by ui-manager.js to align with the numeric keyboard. */
+    /* [REMOVED] The fixed width is removed to allow dynamic sizing by JavaScript. */
+    /* width: 400px; */
     background-color: var(--k1-bg-color);
     border: 1px solid var(--panel-border-color);
     border-left: none;
