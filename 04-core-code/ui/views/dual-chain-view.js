@@ -20,23 +20,7 @@ export class DualChainView {
         const currentMode = this.uiService.getState().dualChainMode;
 
         if (currentMode === 'dual') {
-            const items = this.quoteService.getItems();
-            const productType = this.quoteService.getCurrentProductType();
-            const dualCount = items.filter(item => item.dual === 'D').length;
-
-            if (dualCount % 2 !== 0) {
-                this.eventAggregator.publish('showNotification', {
-                    message: '雙層支架(D)的總數必須為偶數，請修正後再退出。',
-                    type: 'error'
-                });
-                return;
-            }
-            
-            // [REFACTORED] Use the new generic bridge method to get the price.
-            const price = this.calculationService.calculateAccessoryPrice(productType, 'dual', { items });
-            this.uiService.setDualPrice(price);
-
-            this._updateSummaryAccessoriesTotal();
+            this.recalculateDualPrice();
         }
 
         const newMode = currentMode === mode ? null : mode;
@@ -52,6 +36,28 @@ export class DualChainView {
         }
 
         this.publish();
+    }
+
+    /**
+     * Calculates the price for Dual brackets and updates the UI service.
+     */
+    recalculateDualPrice() {
+        const items = this.quoteService.getItems();
+        const productType = this.quoteService.getCurrentProductType();
+        const dualCount = items.filter(item => item.dual === 'D').length;
+
+        if (dualCount % 2 !== 0) {
+            this.eventAggregator.publish('showNotification', {
+                message: '雙層支架(D)的總數必須為偶數，請修正後再退出。',
+                type: 'error'
+            });
+            return false; // Indicate failure
+        }
+        
+        const price = this.calculationService.calculateAccessoryPrice(productType, 'dual', { items });
+        this.uiService.setDualPrice(price);
+        this._updateSummaryAccessoriesTotal();
+        return true; // Indicate success
     }
 
     /**

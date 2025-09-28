@@ -121,6 +121,11 @@ export class AppController {
     }
     
     _calculateF2Summary() {
+        // --- Pre-calculation Step ---
+        this.detailConfigView.driveAccessoriesView.recalculateAllDriveAccessoryPrices();
+        this.detailConfigView.dualChainView.recalculateDualPrice();
+        
+        // After pre-calculation, the UI state has the most up-to-date values.
         const uiState = this.uiService.getState();
         const f2State = uiState.f2;
 
@@ -131,6 +136,7 @@ export class AppController {
             removal: 20
         };
 
+        // Now read the freshly calculated values from the state
         const winderPrice = uiState.summaryWinderPrice || 0;
         const dualPrice = uiState.dualPrice || 0;
         const motorPrice = uiState.summaryMotorPrice || 0;

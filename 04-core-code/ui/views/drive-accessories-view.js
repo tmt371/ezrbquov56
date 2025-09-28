@@ -22,7 +22,7 @@ export class DriveAccessoriesView {
         const newMode = currentMode === mode ? null : mode;
 
         if (currentMode) {
-            this._recalculateAllDriveAccessoryPrices();
+            this.recalculateAllDriveAccessoryPrices();
         }
         
         this.uiService.setDriveAccessoryMode(newMode);
@@ -130,14 +130,13 @@ export class DriveAccessoriesView {
         this.publish();
     }
     
-    _recalculateAllDriveAccessoryPrices() {
+    recalculateAllDriveAccessoryPrices() {
         const items = this.quoteService.getItems();
         const state = this.uiService.getState();
         const productType = this.quoteService.getCurrentProductType();
         const summaryData = {};
         let grandTotal = 0;
 
-        // [REFACTORED] All calls now use the new generic bridge method on the calculation service.
         const winderPrice = this.calculationService.calculateAccessoryPrice(productType, 'winder', { items });
         const winderCount = items.filter(item => item.winder === 'HD').length;
         this.uiService.setDriveAccessoryTotalPrice('winder', winderPrice);

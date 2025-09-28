@@ -59,6 +59,10 @@
     grid-column: 1 / -1; /* Span all 3 columns */
 }
 
+.grid-spacer {
+    min-height: 10px;
+}
+
 .section-header {
     font-weight: bold;
     color: #1f2937;
