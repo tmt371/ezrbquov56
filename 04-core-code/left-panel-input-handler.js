@@ -29,7 +29,7 @@ export class LeftPanelInputHandler {
     }
 
     _setupTabButtons() {
-        const tabContainer = document.querySelector('.tab-container');
+        const tabContainer = document.querySelector('#left-panel .tab-container');
         if (tabContainer) {
             tabContainer.addEventListener('click', (event) => {
                 const target = event.target.closest('.tab-button');
