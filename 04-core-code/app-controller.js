@@ -121,14 +121,29 @@ export class AppController {
     }
     
     _calculateF2Summary() {
+        console.log("--- F2 Summary Calculation Started ---");
+
         // --- Pre-calculation Step ---
         this.detailConfigView.driveAccessoriesView.recalculateAllDriveAccessoryPrices();
         this.detailConfigView.dualChainView.recalculateDualPrice();
         
-        // After pre-calculation, the UI state has the most up-to-date values.
         const uiState = this.uiService.getState();
+        console.log("Reading source values from UI State:", {
+            summaryWinderPrice: uiState.summaryWinderPrice,
+            dualPrice: uiState.dualPrice,
+            summaryMotorPrice: uiState.summaryMotorPrice,
+            summaryRemotePrice: uiState.summaryRemotePrice,
+            summaryChargerPrice: uiState.summaryChargerPrice,
+            summaryCordPrice: uiState.summaryCordPrice,
+            f2Qtys: {
+                wifi: uiState.f2.wifiQty,
+                delivery: uiState.f2.deliveryQty,
+                install: uiState.f2.installQty,
+                removal: uiState.f2.removalQty
+            }
+        });
+        
         const f2State = uiState.f2;
-
         const UNIT_PRICES = {
             wifi: 200,
             delivery: 100,
@@ -136,7 +151,6 @@ export class AppController {
             removal: 20
         };
 
-        // Now read the freshly calculated values from the state
         const winderPrice = uiState.summaryWinderPrice || 0;
         const dualPrice = uiState.dualPrice || 0;
         const motorPrice = uiState.summaryMotorPrice || 0;
@@ -158,6 +172,8 @@ export class AppController {
         const eAcceSum = motorPrice + remotePrice + chargerPrice + cordPrice + wifiSum;
         const surchargeFee = deliveryFee + installFee + removalFee;
 
+        console.log("Calculated F2 values:", { acceSum, eAcceSum, surchargeFee, wifiSum, deliveryFee, installFee, removalFee });
+
         this.uiService.setF2Value('wifiSum', wifiSum);
         this.uiService.setF2Value('deliveryFee', deliveryFee);
         this.uiService.setF2Value('installFee', installFee);
@@ -166,10 +182,8 @@ export class AppController {
         this.uiService.setF2Value('eAcceSum', eAcceSum);
         this.uiService.setF2Value('surchargeFee', surchargeFee);
         
-        // Placeholder for future complex calculations
-        // this.uiService.setF2Value('mulPrice', ...);
-
         this._publishStateChange();
+        console.log("--- F2 Summary Calculation Finished ---");
     }
     
     _handleNavigationToDetailView() {

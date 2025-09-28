@@ -68,6 +68,7 @@ export class UIManager {
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
         this.leftPanelComponent.render(state.ui, state.quoteData);
+        this.rightPanelComponent.render(state.ui); // BUG FIX: Added missing render call
         
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
