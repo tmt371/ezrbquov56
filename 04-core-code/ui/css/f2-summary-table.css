@@ -2,8 +2,8 @@
 
 .f2-summary-grid {
     display: grid;
-    /* Columns: A(label) B(value) C(label) D(value) */
-    grid-template-columns: 0.9fr 1fr 0.9fr 1fr;
+    /* Columns: A(label) B(value/input) C(value) */
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 4px 10px; /* Vertical and horizontal gap */
     align-items: center;
 }
@@ -55,24 +55,36 @@
     visibility: hidden;
 }
 
-.grid-span-4 {
-    grid-column: 1 / -1; /* Span all 4 columns */
-    min-height: 10px;
+.grid-span-3 {
+    grid-column: 1 / -1; /* Span all 3 columns */
 }
 
+.section-header {
+    font-weight: bold;
+    color: #1f2937;
+    background-color: #d1d5db;
+    padding: 4px;
+    border-radius: 3px;
+    margin-top: 8px;
+    justify-content: center;
+    font-size: 0.85em;
+}
+
+
 /* Specific color overrides based on chart */
-#f2-d1-acce-sum,
-#f2-d3-e-acce-sum,
-#f2-d7-fee-sum,
-#f2-b14-sum-price,
-#f2-b15-gst {
+#f2-b4-acce-sum,
+#f2-b11-e-acce-sum,
+#f2-b16-surcharge-fee,
+#f2-b22-sumprice,
+#f2-b24-gst {
     background-color: #fffacd; /* Light yellow */
 }
 
-#f2-d12-1st-profit,
-#f2-d13-single-profit,
-#f2-d14-sum-profit,
-#f2-d15-net-profit {
+#f2-b20-singleprofit,
+#f2-b21-rb-profit,
+#f2-b23-sumprofit,
+#f2-b25-netprofit,
+#f2-c17-1st-rb-price {
     color: #c0392b; /* Red */
     background-color: #f8d7da; /* Light pink */
 }

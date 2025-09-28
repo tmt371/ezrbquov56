@@ -49,7 +49,7 @@ export class UIService {
 
     _initializeF2SummaryState() {
         this.state.f2 = {
-            // User Inputs (QTY)
+            // Inputs (QTY)
             wifiQty: null,
             deliveryQty: null,
             installQty: null,
@@ -64,13 +64,15 @@ export class UIService {
             // Calculated Sums
             acceSum: null,
             eAcceSum: null,
-            feeSum: null,
+            surchargeFee: null,
 
             // Bottom Section Values
             mulPrice: null,
-            firstProfit: null,
+            firstRbPrice: null,
             discount: null,
-            singleRbProfit: null,
+            disRbPrice: null,
+            singleprofit: null,
+            rbProfit: null,
             sumPrice: null,
             sumProfit: null,
             gst: null,
@@ -129,6 +131,8 @@ export class UIService {
     clearRowSelection() {
         this.state.selectedRowIndex = null;
     }
+
+
 
     toggleMultiSelectMode() {
         const isEnteringMode = !this.state.isMultiSelectMode;

@@ -29,35 +29,57 @@ export class RightPanelComponent {
                 }
             });
         }
+
+        // Add event listeners for all QTY input fields
+        const qtyInputs = [
+            this.f2.b10_wifiQty,
+            this.f2.b13_deliveryQty,
+            this.f2.b14_installQty,
+            this.f2.b15_removalQty
+        ];
+
+        qtyInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('input', (event) => {
+                    this.eventAggregator.publish('f2QtyChanged', {
+                        id: event.target.id,
+                        value: event.target.value
+                    });
+                });
+            }
+        });
     }
 
     _cacheF2Elements() {
+        const query = (id) => this.panelElement.querySelector(id);
         this.f2 = {
-            d1_acceSum: this.panelElement.querySelector('#f2-d1-acce-sum'),
-            b2_winderPrice: this.panelElement.querySelector('#f2-b2-winder-price'),
-            d2_dualPrice: this.panelElement.querySelector('#f2-d2-dual-price'),
-            d3_eAcceSum: this.panelElement.querySelector('#f2-d3-e-acce-sum'),
-            b4_motorPrice: this.panelElement.querySelector('#f2-b4-motor-price'),
-            d4_remotePrice: this.panelElement.querySelector('#f2-d4-remote-price'),
-            b5_chargerPrice: this.panelElement.querySelector('#f2-b5-charger-price'),
-            d5_cordPrice: this.panelElement.querySelector('#f2-d5-cord-price'),
-            b6_wifiQty: this.panelElement.querySelector('#f2-b6-wifi-qty'),
-            c6_wifiSum: this.panelElement.querySelector('#f2-c6-wifi-sum'),
-            d7_feeSum: this.panelElement.querySelector('#f2-d7-fee-sum'),
-            b8_deliveryQty: this.panelElement.querySelector('#f2-b8-delivery-qty'),
-            d8_deliveryFee: this.panelElement.querySelector('#f2-d8-delivery-fee'),
-            b9_installQty: this.panelElement.querySelector('#f2-b9-install-qty'),
-            d9_installFee: this.panelElement.querySelector('#f2-d9-install-fee'),
-            b10_removalQty: this.panelElement.querySelector('#f2-b10-removal-qty'),
-            d10_removalFee: this.panelElement.querySelector('#f2-d10-removal-fee'),
-            b12_mulPrice: this.panelElement.querySelector('#f2-b12-mul-price'),
-            d12_1stProfit: this.panelElement.querySelector('#f2-d12-1st-profit'),
-            b13_discount: this.panelElement.querySelector('#f2-b13-discount'),
-            d13_singleProfit: this.panelElement.querySelector('#f2-d13-single-profit'),
-            b14_sumPrice: this.panelElement.querySelector('#f2-b14-sum-price'),
-            d14_sumProfit: this.panelElement.querySelector('#f2-d14-sum-profit'),
-            b15_gst: this.panelElement.querySelector('#f2-b15-gst'),
-            d15_netProfit: this.panelElement.querySelector('#f2-d15-net-profit')
+            b2_winderPrice: query('#f2-b2-winder-price'),
+            b3_dualPrice: query('#f2-b3-dual-price'),
+            b4_acceSum: query('#f2-b4-acce-sum'),
+            b6_motorPrice: query('#f2-b6-motor-price'),
+            b7_remotePrice: query('#f2-b7-remote-price'),
+            b8_chargerPrice: query('#f2-b8-charger-price'),
+            b9_cordPrice: query('#f2-b9-cord-price'),
+            b10_wifiQty: query('#f2-b10-wifi-qty'),
+            c10_wifiSum: query('#f2-c10-wifi-sum'),
+            b11_eAcceSum: query('#f2-b11-e-acce-sum'),
+            b13_deliveryQty: query('#f2-b13-delivery-qty'),
+            c13_deliveryFee: query('#f2-c13-delivery-fee'),
+            b14_installQty: query('#f2-b14-install-qty'),
+            c14_installFee: query('#f2-c14-install-fee'),
+            b15_removalQty: query('#f2-b15-removal-qty'),
+            c15_removalFee: query('#f2-c15-removal-fee'),
+            b16_surchargeFee: query('#f2-b16-surcharge-fee'),
+            b17_mulPrice: query('#f2-b17-mul-price'),
+            c17_1stRbPrice: query('#f2-c17-1st-rb-price'),
+            b18_discount: query('#f2-b18-discount'),
+            b19_disRbPrice: query('#f2-b19-dis-rb-price'),
+            b20_singleprofit: query('#f2-b20-singleprofit'),
+            b21_rbProfit: query('#f2-b21-rb-profit'),
+            b22_sumprice: query('#f2-b22-sumprice'),
+            b23_sumprofit: query('#f2-b23-sumprofit'),
+            b24_gst: query('#f2-b24-gst'),
+            b25_netprofit: query('#f2-b25-netprofit'),
         };
     }
 
@@ -66,42 +88,46 @@ export class RightPanelComponent {
     }
 
     _renderF2Tab(uiState) {
-        if (!uiState || !uiState.f2) return;
-        const f2State = uiState.f2;
-
-        const formatCurrency = (value) => (typeof value === 'number') ? `$${value.toFixed(2)}` : '$';
-        const formatValue = (value, prefix = '', suffix = '') => (value !== null && value !== undefined) ? `${prefix}${value}${suffix}` : '';
-
-        // Update display values
-        this.f2.b2_winderPrice.textContent = formatCurrency(uiState.summaryWinderPrice);
-        this.f2.d2_dualPrice.textContent = formatCurrency(uiState.dualPrice);
-        this.f2.b4_motorPrice.textContent = formatCurrency(uiState.summaryMotorPrice);
-        this.f2.d4_remotePrice.textContent = formatCurrency(uiState.summaryRemotePrice);
-        this.f2.b5_chargerPrice.textContent = formatCurrency(uiState.summaryChargerPrice);
-        this.f2.d5_cordPrice.textContent = formatCurrency(uiState.summaryCordPrice);
-
-        this.f2.d1_acceSum.textContent = formatCurrency(f2State.acceSum);
-        this.f2.d3_eAcceSum.textContent = formatCurrency(f2State.eAcceSum);
-        this.f2.c6_wifiSum.textContent = formatCurrency(f2State.wifiSum);
-        this.f2.d7_feeSum.textContent = formatCurrency(f2State.feeSum);
-        this.f2.d8_deliveryFee.textContent = formatCurrency(f2State.deliveryFee);
-        this.f2.d9_installFee.textContent = formatCurrency(f2State.installFee);
-        this.f2.d10_removalFee.textContent = formatCurrency(f2State.removalFee);
+        if (!uiState || !uiState.f2 || !this.f2.b2_winderPrice) return;
         
-        this.f2.b12_mulPrice.textContent = formatValue(f2State.mulPrice);
-        this.f2.d12_1stProfit.textContent = formatValue(f2State.firstProfit);
-        this.f2.b13_discount.textContent = formatValue(f2State.discount);
-        this.f2.d13_singleProfit.textContent = formatValue(f2State.singleRbProfit);
-        this.f2.b14_sumPrice.textContent = formatValue(f2State.sumPrice);
-        this.f2.d14_sumProfit.textContent = formatValue(f2State.sumProfit);
-        this.f2.b15_gst.textContent = formatValue(f2State.gst);
-        this.f2.d15_netProfit.textContent = formatValue(f2State.netProfit);
+        const f2State = uiState.f2;
+        const formatCurrency = (value) => (typeof value === 'number') ? `$${value.toFixed(2)}` : '$';
+        const formatValue = (value) => (value !== null && value !== undefined) ? value : '';
 
-        // Update input values
-        this.f2.b6_wifiQty.value = f2State.wifiQty || '';
-        this.f2.b8_deliveryQty.value = f2State.deliveryQty || '';
-        this.f2.b9_installQty.value = f2State.installQty || '';
-        this.f2.b10_removalQty.value = f2State.removalQty || '';
+        // Render values from main UI state
+        this.f2.b2_winderPrice.textContent = formatCurrency(uiState.summaryWinderPrice);
+        this.f2.b3_dualPrice.textContent = formatCurrency(uiState.dualPrice);
+        this.f2.b6_motorPrice.textContent = formatCurrency(uiState.summaryMotorPrice);
+        this.f2.b7_remotePrice.textContent = formatCurrency(uiState.summaryRemotePrice);
+        this.f2.b8_chargerPrice.textContent = formatCurrency(uiState.summaryChargerPrice);
+        this.f2.b9_cordPrice.textContent = formatCurrency(uiState.summaryCordPrice);
+
+        // Render values from F2-specific state
+        this.f2.b4_acceSum.textContent = formatCurrency(f2State.acceSum);
+        this.f2.c10_wifiSum.textContent = formatCurrency(f2State.wifiSum);
+        this.f2.b11_eAcceSum.textContent = formatCurrency(f2State.eAcceSum);
+        this.f2.c13_deliveryFee.textContent = formatCurrency(f2State.deliveryFee);
+        this.f2.c14_installFee.textContent = formatCurrency(f2State.installFee);
+        this.f2.c15_removalFee.textContent = formatCurrency(f2State.removalFee);
+        this.f2.b16_surchargeFee.textContent = formatCurrency(f2State.surchargeFee);
+        
+        // Render bottom section
+        this.f2.b17_mulPrice.textContent = formatValue(f2State.mulPrice);
+        this.f2.c17_1stRbPrice.textContent = formatValue(f2State.firstRbPrice);
+        this.f2.b18_discount.textContent = formatValue(f2State.discount);
+        this.f2.b19_disRbPrice.textContent = formatValue(f2State.disRbPrice);
+        this.f2.b20_singleprofit.textContent = formatValue(f2State.singleprofit);
+        this.f2.b21_rbProfit.textContent = formatValue(f2State.rbProfit);
+        this.f2.b22_sumprice.textContent = formatValue(f2State.sumprice);
+        this.f2.b23_sumprofit.textContent = formatValue(f2State.sumprofit);
+        this.f2.b24_gst.textContent = formatValue(f2State.gst);
+        this.f2.b25_netprofit.textContent = formatValue(f2State.netprofit);
+
+        // Update input values from state
+        this.f2.b10_wifiQty.value = f2State.wifiQty || '';
+        this.f2.b13_deliveryQty.value = f2State.deliveryQty || '';
+        this.f2.b14_installQty.value = f2State.installQty || '';
+        this.f2.b15_removalQty.value = f2State.removalQty || '';
     }
 
     _setActiveTab(clickedButton) {
@@ -116,8 +142,6 @@ export class RightPanelComponent {
         });
 
         if (targetContentId === '#f2-content') {
-            // When switching to F2, we might need to explicitly sync data.
-            // This event can be used by a controller to trigger the data sync.
             this.eventAggregator.publish('f2TabActivated');
         }
     }

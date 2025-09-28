@@ -24,6 +24,7 @@ export class AppController {
         this._subscribeQuickQuoteEvents();
         this._subscribeDetailViewEvents();
         this._subscribeGlobalEvents();
+        this._subscribeF2Events(); // New event subscriptions
         
         this._startAutoSave();
     }
@@ -96,6 +97,74 @@ export class AppController {
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());
         this.eventAggregator.subscribe('fileLoaded', (data) => this._handleFileLoad(data));
     }
+
+    _subscribeF2Events() {
+        this.eventAggregator.subscribe('f2TabActivated', () => this._calculateF2Summary());
+        this.eventAggregator.subscribe('f2QtyChanged', (data) => this._handleF2QtyChange(data));
+    }
+    
+    _handleF2QtyChange({ id, value }) {
+        const qtyValue = value === '' ? null : parseInt(value, 10);
+        let keyToUpdate = null;
+
+        switch (id) {
+            case 'f2-b10-wifi-qty': keyToUpdate = 'wifiQty'; break;
+            case 'f2-b13-delivery-qty': keyToUpdate = 'deliveryQty'; break;
+            case 'f2-b14-install-qty': keyToUpdate = 'installQty'; break;
+            case 'f2-b15-removal-qty': keyToUpdate = 'removalQty'; break;
+        }
+
+        if (keyToUpdate) {
+            this.uiService.setF2Value(keyToUpdate, qtyValue);
+            this._calculateF2Summary();
+        }
+    }
+    
+    _calculateF2Summary() {
+        const uiState = this.uiService.getState();
+        const f2State = uiState.f2;
+
+        const UNIT_PRICES = {
+            wifi: 200,
+            delivery: 100,
+            install: 20,
+            removal: 20
+        };
+
+        const winderPrice = uiState.summaryWinderPrice || 0;
+        const dualPrice = uiState.dualPrice || 0;
+        const motorPrice = uiState.summaryMotorPrice || 0;
+        const remotePrice = uiState.summaryRemotePrice || 0;
+        const chargerPrice = uiState.summaryChargerPrice || 0;
+        const cordPrice = uiState.summaryCordPrice || 0;
+
+        const wifiQty = f2State.wifiQty || 0;
+        const deliveryQty = f2State.deliveryQty || 0;
+        const installQty = f2State.installQty || 0;
+        const removalQty = f2State.removalQty || 0;
+
+        const wifiSum = wifiQty * UNIT_PRICES.wifi;
+        const deliveryFee = deliveryQty * UNIT_PRICES.delivery;
+        const installFee = installQty * UNIT_PRICES.install;
+        const removalFee = removalQty * UNIT_PRICES.removal;
+
+        const acceSum = winderPrice + dualPrice;
+        const eAcceSum = motorPrice + remotePrice + chargerPrice + cordPrice + wifiSum;
+        const surchargeFee = deliveryFee + installFee + removalFee;
+
+        this.uiService.setF2Value('wifiSum', wifiSum);
+        this.uiService.setF2Value('deliveryFee', deliveryFee);
+        this.uiService.setF2Value('installFee', installFee);
+        this.uiService.setF2Value('removalFee', removalFee);
+        this.uiService.setF2Value('acceSum', acceSum);
+        this.uiService.setF2Value('eAcceSum', eAcceSum);
+        this.uiService.setF2Value('surchargeFee', surchargeFee);
+        
+        // Placeholder for future complex calculations
+        // this.uiService.setF2Value('mulPrice', ...);
+
+        this._publishStateChange();
+    }
     
     _handleNavigationToDetailView() {
         const currentView = this.uiService.getState().currentView;
@@ -134,7 +203,6 @@ export class AppController {
     _handleFileLoad({ fileName, content }) {
         const result = this.fileService.parseFileContent(fileName, content);
         if (result.success) {
-            // [BUG FIX] Correctly assign loaded data to the quoteService, not 'this'.
             this.quoteService.quoteData = result.data;
             this.uiService.reset(initialState.ui);
             this.uiService.setSumOutdated(true);
