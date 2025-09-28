@@ -144,16 +144,31 @@ class App {
     }
 
     async _loadPartials() {
-        try {
-            const response = await fetch('./04-core-code/ui/partials/left-panel.html');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+        const loadPartial = async (url, targetElement, injectionMethod = 'append') => {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status} for ${url}`);
+                }
+                const html = await response.text();
+                if (injectionMethod === 'innerHTML') {
+                    targetElement.innerHTML = html;
+                } else {
+                    targetElement.insertAdjacentHTML('beforeend', html);
+                }
+            } catch (error) {
+                console.error(`Failed to load HTML partial from ${url}:`, error);
+                this.eventAggregator.publish('showNotification', { message: `Error: Could not load UI component from ${url}!`, type: 'error'});
             }
-            const html = await response.text();
-            document.body.insertAdjacentHTML('beforeend', html);
-        } catch (error) {
-            console.error("Failed to load HTML partial:", error);
-            this.eventAggregator.publish('showNotification', { message: 'Error: Could not load UI components!', type: 'error'});
+        };
+    
+        // Left panel is a standalone element appended to the body
+        await loadPartial('./04-core-code/ui/partials/left-panel.html', document.body);
+        
+        // Right panel content is injected into the existing #function-panel container
+        const functionPanel = document.getElementById('function-panel');
+        if (functionPanel) {
+            await loadPartial('./04-core-code/ui/partials/right-panel.html', functionPanel, 'innerHTML');
         }
     }
 

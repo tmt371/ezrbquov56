@@ -6,6 +6,7 @@ import { PanelComponent } from './panel-component.js';
 import { NotificationComponent } from './notification-component.js';
 import { DialogComponent } from './dialog-component.js';
 import { LeftPanelComponent } from './left-panel-component.js';
+import { RightPanelComponent } from './right-panel-component.js';
 
 export class UIManager {
     constructor(appElement, eventAggregator) {
@@ -36,6 +37,11 @@ export class UIManager {
             expandedClass: 'is-expanded',
             retractEventName: 'operationSuccessfulAutoHidePanel'
         });
+        
+        this.rightPanelComponent = new RightPanelComponent(
+            document.getElementById('function-panel'),
+            this.eventAggregator
+        );
 
         this.notificationComponent = new NotificationComponent({
             containerElement: document.getElementById('toast-container'),
