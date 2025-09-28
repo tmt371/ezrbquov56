@@ -1,0 +1,78 @@
+/* File: 04-core-code/ui/css/f2-summary-table.css */
+
+.f2-summary-grid {
+    display: grid;
+    /* Columns: A(label) B(value) C(label) D(value) */
+    grid-template-columns: 0.9fr 1fr 0.9fr 1fr;
+    gap: 4px 10px; /* Vertical and horizontal gap */
+    align-items: center;
+}
+
+.f2-summary-grid > div,
+.f2-summary-grid > input {
+    font-size: 0.8em;
+    padding: 4px;
+    box-sizing: border-box;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+}
+
+.grid-cell-label {
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+}
+
+.grid-cell-label.text-right {
+    justify-content: flex-end;
+}
+
+.grid-cell-value {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    justify-content: flex-end;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    padding-right: 6px;
+}
+
+.grid-cell-input {
+    width: 100%;
+    border: 1px solid #b0b8c4;
+    border-radius: 3px;
+    text-align: right;
+    padding-right: 6px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.grid-cell-input::placeholder {
+    text-align: center;
+    font-style: italic;
+}
+
+.grid-cell-placeholder {
+    visibility: hidden;
+}
+
+.grid-span-4 {
+    grid-column: 1 / -1; /* Span all 4 columns */
+    min-height: 10px;
+}
+
+/* Specific color overrides based on chart */
+#f2-d1-acce-sum,
+#f2-d3-e-acce-sum,
+#f2-d7-fee-sum,
+#f2-b14-sum-price,
+#f2-b15-gst {
+    background-color: #fffacd; /* Light yellow */
+}
+
+#f2-d12-1st-profit,
+#f2-d13-single-profit,
+#f2-d14-sum-profit,
+#f2-d15-net-profit {
+    color: #c0392b; /* Red */
+    background-color: #f8d7da; /* Light pink */
+}

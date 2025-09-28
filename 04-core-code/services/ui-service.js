@@ -22,6 +22,7 @@ export class UIService {
         this.state.dualPrice = null;
 
         this._initializeDriveAccessoryState();
+        this._initializeF2SummaryState(); // New state initialization
         
         console.log("UIService Initialized.");
     }
@@ -46,6 +47,37 @@ export class UIService {
         this.state.summaryAccessoriesTotal = null;
     }
 
+    _initializeF2SummaryState() {
+        this.state.f2 = {
+            // User Inputs (QTY)
+            wifiQty: null,
+            deliveryQty: null,
+            installQty: null,
+            removalQty: null,
+            
+            // Calculated Values from Inputs
+            wifiSum: null,
+            deliveryFee: null,
+            installFee: null,
+            removalFee: null,
+
+            // Calculated Sums
+            acceSum: null,
+            eAcceSum: null,
+            feeSum: null,
+
+            // Bottom Section Values
+            mulPrice: null,
+            firstProfit: null,
+            discount: null,
+            singleRbProfit: null,
+            sumPrice: null,
+            sumProfit: null,
+            gst: null,
+            netProfit: null
+        };
+    }
+
     getState() {
         return this.state;
     }
@@ -66,6 +98,7 @@ export class UIService {
         this.state.dualPrice = null;
 
         this._initializeDriveAccessoryState();
+        this._initializeF2SummaryState(); // Also reset F2 state
     }
 
     setActiveCell(rowIndex, column) {
@@ -119,7 +152,6 @@ export class UIService {
         }
     }
 
-    // [NEW] Clears the set of selected indexes.
     clearMultiSelectSelection() {
         this.state.multiSelectSelectedIndexes.clear();
     }
@@ -245,5 +277,16 @@ export class UIService {
 
     setSummaryAccessoriesTotal(value) {
         this.state.summaryAccessoriesTotal = value;
+    }
+
+    /**
+     * A generic setter for F2 summary state properties.
+     * @param {string} key - The key within the state.f2 object.
+     * @param {*} value - The new value to set.
+     */
+    setF2Value(key, value) {
+        if (this.state.f2.hasOwnProperty(key)) {
+            this.state.f2[key] = value;
+        }
     }
 }
