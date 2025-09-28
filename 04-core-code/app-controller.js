@@ -13,7 +13,7 @@ export class AppController {
         this.fileService = fileService;
         this.quickQuoteView = quickQuoteView;
         this.detailConfigView = detailConfigView;
-        this.calculationService = calculationService; // BUG FIX: Accept and store the injected service
+        this.calculationService = calculationService;
 
         this.f2InputSequence = [
             'f2-b10-wifi-qty', 'f2-b13-delivery-qty', 'f2-b14-install-qty',
@@ -107,8 +107,14 @@ export class AppController {
         this.eventAggregator.subscribe('f2TabActivated', () => this._calculateF2Summary());
         this.eventAggregator.subscribe('f2ValueChanged', (data) => this._handleF2ValueChange(data));
         this.eventAggregator.subscribe('f2InputEnterPressed', (data) => this._focusNextF2Input(data.id));
+        this.eventAggregator.subscribe('toggleFeeExclusion', (data) => this._handleToggleFeeExclusion(data));
     }
     
+    _handleToggleFeeExclusion({ feeType }) {
+        this.uiService.toggleF2FeeExclusion(feeType);
+        this._calculateF2Summary();
+    }
+
     _handleF2ValueChange({ id, value }) {
         const numericValue = value === '' ? null : parseFloat(value);
         let keyToUpdate = null;
@@ -179,11 +185,16 @@ export class AppController {
 
         const acceSum = winderPrice + dualPrice;
         const eAcceSum = motorPrice + remotePrice + chargerPrice + cordPrice + wifiSum;
-        const surchargeFee = deliveryFee + installFee + removalFee;
+        const surchargeFee = 
+            (f2State.deliveryFeeExcluded ? 0 : deliveryFee) +
+            (f2State.installFeeExcluded ? 0 : installFee) +
+            (f2State.removalFeeExcluded ? 0 : removalFee);
         
         const firstRbPrice = totalSumFromQuickQuote * mulTimes;
-        const discountAmount = firstRbPrice * (discount / 100);
-        const disRbPrice = Math.ceil(discountAmount * 100) / 100;
+        // Formula FIX: Calculate discounted price instead of discount amount
+        const disRbPriceValue = firstRbPrice * (1 - (discount / 100));
+        const disRbPrice = Math.round(disRbPriceValue * 100) / 100;
+        
         const sumPrice = acceSum + eAcceSum + surchargeFee + disRbPrice;
 
         this.uiService.setF2Value('wifiSum', wifiSum);

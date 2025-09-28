@@ -63,13 +63,18 @@ export class UIService {
             installFee: null,
             removalFee: null,
 
+            // Strikethrough feature state
+            deliveryFeeExcluded: false,
+            installFeeExcluded: false,
+            removalFeeExcluded: false,
+
             // Calculated Sums
             acceSum: null,
             eAcceSum: null,
             surchargeFee: null,
 
             // Bottom Section Values
-            totalSumForRbTime: null, // Value for cell A17
+            totalSumForRbTime: null,
             firstRbPrice: null,
             disRbPrice: null,
             singleprofit: null,
@@ -292,6 +297,13 @@ export class UIService {
     setF2Value(key, value) {
         if (this.state.f2.hasOwnProperty(key)) {
             this.state.f2[key] = value;
+        }
+    }
+
+    toggleF2FeeExclusion(feeType) {
+        const key = `${feeType}FeeExcluded`;
+        if (this.state.f2.hasOwnProperty(key)) {
+            this.state.f2[key] = !this.state.f2[key];
         }
     }
 }

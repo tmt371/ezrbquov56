@@ -31,11 +31,11 @@ export class RightPanelComponent {
         }
 
         // --- Event Listeners for F2 Inputs ---
-        const setupInputListener = (inputElement, eventName) => {
+        const setupInputListener = (inputElement) => {
             if (inputElement) {
-                const eventType = (inputElement.type === 'number') ? 'input' : 'change';
-                inputElement.addEventListener(eventType, (event) => {
-                    this.eventAggregator.publish(eventName, {
+                // BUG FIX: Change event type from 'input' to 'change' to prevent cursor jumping
+                inputElement.addEventListener('change', (event) => {
+                    this.eventAggregator.publish('f2ValueChanged', {
                         id: event.target.id,
                         value: event.target.value
                     });
@@ -50,12 +50,25 @@ export class RightPanelComponent {
             }
         };
 
-        // Listen for all input changes
         const inputs = [
             this.f2.b10_wifiQty, this.f2.b13_deliveryQty, this.f2.b14_installQty,
             this.f2.b15_removalQty, this.f2.b17_mulTimes, this.f2.b18_discount
         ];
-        inputs.forEach(input => setupInputListener(input, 'f2ValueChanged'));
+        inputs.forEach(input => setupInputListener(input));
+
+        // --- Event Listeners for Clickable Fee Cells ---
+        const feeCells = [
+            { el: this.f2.c13_deliveryFee, type: 'delivery' },
+            { el: this.f2.c14_installFee, type: 'install' },
+            { el: this.f2.c15_removalFee, type: 'removal' }
+        ];
+        feeCells.forEach(({ el, type }) => {
+            if (el) {
+                el.addEventListener('click', () => {
+                    this.eventAggregator.publish('toggleFeeExclusion', { feeType: type });
+                });
+            }
+        });
 
         this.eventAggregator.subscribe('focusElement', ({ elementId }) => {
             const element = this.panelElement.querySelector(`#${elementId}`);
@@ -147,6 +160,11 @@ export class RightPanelComponent {
         this.f2.b15_removalQty.value = formatValue(f2State.removalQty);
         this.f2.b17_mulTimes.value = formatValue(f2State.mulTimes);
         this.f2.b18_discount.value = formatValue(f2State.discount);
+
+        // Apply strikethrough class based on state
+        this.f2.c13_deliveryFee.classList.toggle('is-excluded', f2State.deliveryFeeExcluded);
+        this.f2.c14_installFee.classList.toggle('is-excluded', f2State.installFeeExcluded);
+        this.f2.c15_removalFee.classList.toggle('is-excluded', f2State.removalFeeExcluded);
     }
 
     _setActiveTab(clickedButton) {

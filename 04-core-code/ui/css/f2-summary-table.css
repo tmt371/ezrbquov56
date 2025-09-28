@@ -93,6 +93,21 @@
     background-color: #f8d7da; /* Light pink */
 }
 
+/* --- Strikethrough Feature Styles --- */
+#f2-c13-delivery-fee,
+#f2-c14-install-fee,
+#f2-c15-removal-fee {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.is-excluded {
+    background-color: #f8d7da !important; /* Light pink */
+    text-decoration: line-through;
+    color: #721c24;
+}
+
+
 /* Hide Number Input Spinners */
 .grid-cell-input[type=number]::-webkit-outer-spin-button,
 .grid-cell-input[type=number]::-webkit-inner-spin-button {
