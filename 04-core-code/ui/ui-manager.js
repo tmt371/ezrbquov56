@@ -20,7 +20,7 @@ export class UIManager {
         this.clearButton = document.getElementById('key-clear');
         this.leftPanelElement = document.getElementById('left-panel');
         
-        this.cachedKeypadLayout = null; // Property to store the cached layout
+        this.cachedKeypadLayout = null; 
 
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
@@ -75,6 +75,7 @@ export class UIManager {
     }
 
     cacheKeypadLayout() {
+        // This method is kept for potential future use but is no longer central to the layout logic.
         const key7 = document.getElementById('key-7');
         const key0 = document.getElementById('key-0');
         const typeKey = document.getElementById('key-type');
@@ -100,21 +101,38 @@ export class UIManager {
 
     _adjustLeftPanelLayout() {
         const leftPanel = this.leftPanelElement;
-        if (!leftPanel) return;
+        const appContainer = this.appElement;
+        const numericKeyboard = this.numericKeyboardPanel;
 
-        if (this.cachedKeypadLayout) {
-            // Use the reliable cached values
-            leftPanel.style.top = `${this.cachedKeypadLayout.top}px`;
-            leftPanel.style.height = `${this.cachedKeypadLayout.height}px`;
-            leftPanel.style.width = `${this.cachedKeypadLayout.width}px`;
+        if (!leftPanel || !appContainer || !numericKeyboard) return;
+
+        const isKeyboardCollapsed = numericKeyboard.classList.contains('is-collapsed');
+
+        if (!isKeyboardCollapsed) {
+            // --- PRECISION MODE: Keyboard is visible, align with keys ---
+            const key7 = document.getElementById('key-7');
+            const key0 = document.getElementById('key-0');
+            const typeKey = document.getElementById('key-type');
+
+            if (!key7 || !key0 || !typeKey) return; 
+
+            const key7Rect = key7.getBoundingClientRect();
+            const key0Rect = key0.getBoundingClientRect();
+            const typeKeyRect = typeKey.getBoundingClientRect();
+
+            if (key7Rect.width > 0) {
+                leftPanel.style.top = `${key7Rect.top}px`;
+                leftPanel.style.height = `${key0Rect.bottom - key7Rect.top}px`;
+                leftPanel.style.width = `${typeKeyRect.left + (typeKeyRect.width / 2)}px`;
+            }
         } else {
-            // Fallback to the previous safe (but less precise) method if caching failed
+            // --- FALLBACK MODE: Keyboard is collapsed, align with results panel ---
             const resultsPanel = this.appElement.querySelector('.results-panel');
             if (resultsPanel) {
                 const resultsPanelRect = resultsPanel.getBoundingClientRect();
                 leftPanel.style.top = `${resultsPanelRect.top}px`;
                 leftPanel.style.height = `${resultsPanelRect.height}px`;
-                leftPanel.style.width = `${this.appElement.getBoundingClientRect().width * 0.45}px`;
+                leftPanel.style.width = `${appContainer.getBoundingClientRect().width * 0.45}px`;
             }
         }
     }
@@ -124,7 +142,6 @@ export class UIManager {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
             
             if (isExpanded) {
-                // Adjust layout *before* expanding to prevent visual flicker
                 this._adjustLeftPanelLayout();
             }
             
@@ -180,9 +197,6 @@ export class UIManager {
     _toggleNumericKeyboard() {
         if (this.numericKeyboardPanel) {
             this.numericKeyboardPanel.classList.toggle('is-collapsed');
-            // After the keyboard state changes, re-cache the layout in case the window was resized
-            // Use a timeout to allow the CSS transition to complete before measuring
-            setTimeout(() => this.cacheKeypadLayout(), 350);
         }
     }
 }
