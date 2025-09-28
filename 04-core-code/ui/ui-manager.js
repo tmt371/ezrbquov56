@@ -20,7 +20,7 @@ export class UIManager {
         this.clearButton = document.getElementById('key-clear');
         this.leftPanelElement = document.getElementById('left-panel');
         
-        this.cachedLeftPanelHeight = 0;
+        this.cachedKeypadLayout = null; // Property to store the cached layout
 
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
@@ -54,7 +54,6 @@ export class UIManager {
         });
 
         this.initialize();
-        this._initializeLeftPanelLayout();
     }
 
     initialize() {
@@ -75,78 +74,61 @@ export class UIManager {
         this._scrollToActiveCell(state);
     }
 
-    _adjustLeftPanelLayout() {
-        const leftPanel = this.leftPanelElement;
-        const appContainer = this.appElement;
+    cacheKeypadLayout() {
         const key7 = document.getElementById('key-7');
         const key0 = document.getElementById('key-0');
         const typeKey = document.getElementById('key-type');
 
-        if (!leftPanel || !appContainer || !key7 || !key0 || !typeKey) return;
+        if (!key7 || !key0 || !typeKey) {
+            console.error("Could not find keypad keys to cache layout.");
+            return;
+        }
 
         const key7Rect = key7.getBoundingClientRect();
         const key0Rect = key0.getBoundingClientRect();
         const typeKeyRect = typeKey.getBoundingClientRect();
 
-        // Check if the keyboard keys are visible and have dimensions
-        if (key7Rect.width > 0 && key0Rect.width > 0) {
-            // --- Top Calculation ---
-            // The panel's top position is aligned with the top of the '7' key
-            const dynamicTop = key7Rect.top;
-
-            // --- Height Calculation ---
-            // The panel's height is the distance from the top of the '7' key to the bottom of the '0' key
-            const dynamicHeight = key0Rect.bottom - key7Rect.top;
-
-            // --- Width Calculation ---
-            // The panel's right edge aligns to the center of the 'TYPE' key
-            const typeKeyCenter = typeKeyRect.left + (typeKeyRect.width / 2);
-            const dynamicWidth = typeKeyCenter;
-
-            // Apply dynamic styles
-            leftPanel.style.top = `${dynamicTop}px`;
-            leftPanel.style.height = `${dynamicHeight}px`;
-            leftPanel.style.width = `${dynamicWidth}px`;
-
-        } else {
-            // Fallback for when the keyboard is collapsed/hidden
-            const appContainerRect = appContainer.getBoundingClientRect();
-            const resultsPanel = this.appElement.querySelector('.results-panel');
-            if (!resultsPanel) return;
-            const resultsPanelRect = resultsPanel.getBoundingClientRect();
-            
-            leftPanel.style.top = `${resultsPanelRect.top}px`;
-            leftPanel.style.height = `${resultsPanelRect.height}px`;
-            leftPanel.style.width = `${appContainerRect.width * 0.45}px`; // A safe percentage
+        if (key7Rect.width > 0) {
+            this.cachedKeypadLayout = {
+                top: key7Rect.top,
+                height: key0Rect.bottom - key7Rect.top,
+                width: typeKeyRect.left + (typeKeyRect.width / 2)
+            };
+            console.log("Keypad layout cached successfully:", this.cachedKeypadLayout);
         }
     }
 
-    _initializeLeftPanelLayout() {
-        const resizeObserver = new ResizeObserver(() => {
-            if (this.leftPanelElement.classList.contains('is-expanded')) {
-                this._adjustLeftPanelLayout();
-            }
-        });
-        resizeObserver.observe(this.appElement);
-        
-        new MutationObserver(() => {
-            if(this.leftPanelElement.classList.contains('is-expanded')) {
-                 this._adjustLeftPanelLayout();
-            }
-        }).observe(this.numericKeyboardPanel, { attributes: true, attributeFilter: ['class'] });
+    _adjustLeftPanelLayout() {
+        const leftPanel = this.leftPanelElement;
+        if (!leftPanel) return;
 
-        setTimeout(() => this._adjustLeftPanelLayout(), 0);
+        if (this.cachedKeypadLayout) {
+            // Use the reliable cached values
+            leftPanel.style.top = `${this.cachedKeypadLayout.top}px`;
+            leftPanel.style.height = `${this.cachedKeypadLayout.height}px`;
+            leftPanel.style.width = `${this.cachedKeypadLayout.width}px`;
+        } else {
+            // Fallback to the previous safe (but less precise) method if caching failed
+            const resultsPanel = this.appElement.querySelector('.results-panel');
+            if (resultsPanel) {
+                const resultsPanelRect = resultsPanel.getBoundingClientRect();
+                leftPanel.style.top = `${resultsPanelRect.top}px`;
+                leftPanel.style.height = `${resultsPanelRect.height}px`;
+                leftPanel.style.width = `${this.appElement.getBoundingClientRect().width * 0.45}px`;
+            }
+        }
     }
     
     _updateLeftPanelState(currentView) {
         if (this.leftPanelElement) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
-            this.leftPanelElement.classList.toggle('is-expanded', isExpanded);
-
+            
             if (isExpanded) {
-                // Use a short timeout to ensure the transition has started and all elements are visible for measurement
-                setTimeout(() => this._adjustLeftPanelLayout(), 50);
+                // Adjust layout *before* expanding to prevent visual flicker
+                this._adjustLeftPanelLayout();
             }
+            
+            this.leftPanelElement.classList.toggle('is-expanded', isExpanded);
         }
     }
 
@@ -198,6 +180,9 @@ export class UIManager {
     _toggleNumericKeyboard() {
         if (this.numericKeyboardPanel) {
             this.numericKeyboardPanel.classList.toggle('is-collapsed');
+            // After the keyboard state changes, re-cache the layout in case the window was resized
+            // Use a timeout to allow the CSS transition to complete before measuring
+            setTimeout(() => this.cacheKeypadLayout(), 350);
         }
     }
 }

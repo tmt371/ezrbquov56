@@ -53,7 +53,6 @@ class App {
         const productFactory = new ProductFactory();
 
         // Services are instantiated here...
-        // [REFACTORED] Injected configManager into QuoteService
         const quoteService = new QuoteService({
             initialState: startingState,
             productFactory: productFactory,
@@ -72,7 +71,6 @@ class App {
 
         const publishStateChangeCallback = () => this.eventAggregator.publish('stateChanged', this.appController._getFullState());
 
-        // [REFACTORED] Injected configManager into QuickQuoteView
         const quickQuoteView = new QuickQuoteView({
             quoteService,
             calculationService,
@@ -140,7 +138,7 @@ class App {
             fileService,
             quickQuoteView,
             detailConfigView,
-            calculationService // BUG FIX: Added missing dependency injection
+            calculationService
         });
     }
 
@@ -163,10 +161,8 @@ class App {
             }
         };
     
-        // Left panel is a standalone element appended to the body
         await loadPartial('./04-core-code/ui/partials/left-panel.html', document.body);
         
-        // Right panel content is injected into the existing #function-panel container
         const functionPanel = document.getElementById('function-panel');
         if (functionPanel) {
             await loadPartial('./04-core-code/ui/partials/right-panel.html', functionPanel, 'innerHTML');
@@ -178,7 +174,6 @@ class App {
         
         await this._loadPartials();
 
-        this.inputHandler = new InputHandler(this.eventAggregator);
         this.uiManager = new UIManager(
             document.getElementById('app'), 
             this.eventAggregator
@@ -191,6 +186,9 @@ class App {
         });
         
         this.appController.publishInitialState(); 
+        this.uiManager.cacheKeypadLayout(); // Cache the layout after initial render
+        
+        this.inputHandler = new InputHandler(this.eventAggregator);
         this.inputHandler.initialize(); 
         console.log("Application running and interactive.");
     }
