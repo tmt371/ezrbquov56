@@ -15,6 +15,11 @@ export class AppController {
         this.quickQuoteView = quickQuoteView;
         this.detailConfigView = detailConfigView;
 
+        this.f2InputSequence = [
+            'f2-b10-wifi-qty', 'f2-b13-delivery-qty', 'f2-b14-install-qty',
+            'f2-b15-removal-qty', 'f2-b17-mul-times', 'f2-b18-discount'
+        ];
+
         this.autoSaveTimerId = null;
         console.log("AppController (Refactored with grouped subscriptions) Initialized.");
         this.initialize();
@@ -100,11 +105,11 @@ export class AppController {
 
     _subscribeF2Events() {
         this.eventAggregator.subscribe('f2TabActivated', () => this._calculateF2Summary());
-        this.eventAggregator.subscribe('f2QtyChanged', (data) => this._handleF2ValueChange(data, 'qty'));
-        this.eventAggregator.subscribe('f2ValueChanged', (data) => this._handleF2ValueChange(data, 'value'));
+        this.eventAggregator.subscribe('f2ValueChanged', (data) => this._handleF2ValueChange(data));
+        this.eventAggregator.subscribe('f2InputEnterPressed', (data) => this._focusNextF2Input(data.id));
     }
     
-    _handleF2ValueChange({ id, value }, type) {
+    _handleF2ValueChange({ id, value }) {
         const numericValue = value === '' ? null : parseFloat(value);
         let keyToUpdate = null;
 
@@ -122,18 +127,28 @@ export class AppController {
             this._calculateF2Summary();
         }
     }
+
+    _focusNextF2Input(currentId) {
+        const currentIndex = this.f2InputSequence.indexOf(currentId);
+        if (currentIndex > -1 && currentIndex < this.f2InputSequence.length - 1) {
+            const nextElementId = this.f2InputSequence[currentIndex + 1];
+            this.eventAggregator.publish('focusElement', { elementId: nextElementId });
+        }
+    }
     
     _calculateF2Summary() {
-        console.log("--- F2 Summary Calculation Started ---");
-        // --- Pre-calculation Step ---
+        // --- Pre-calculation Step 1: Recalculate main quote to get the latest totalSum ---
+        const productStrategy = this.quickQuoteView.productFactory.getProductStrategy('rollerBlind');
+        const { updatedQuoteData } = this.calculationService.calculateAndSum(this.quoteService.getQuoteData(), productStrategy);
+        this.quoteService.quoteData = updatedQuoteData;
+        const totalSumFromQuickQuote = updatedQuoteData.summary.totalSum || 0;
+
+        // --- Pre-calculation Step 2: Recalculate accessories ---
         this.detailConfigView.driveAccessoriesView.recalculateAllDriveAccessoryPrices();
         this.detailConfigView.dualChainView.recalculateDualPrice();
         
         const uiState = this.uiService.getState();
-        const quoteData = this.quoteService.getQuoteData();
-        const totalSumFromQuickQuote = quoteData.summary.totalSum || 0;
-        
-        this.uiService.setF2Value('totalSumForRbTime', totalSumFromQuickQuote.toFixed(2));
+        this.uiService.setF2Value('totalSumForRbTime', totalSumFromQuickQuote);
 
         const f2State = uiState.f2;
         const UNIT_PRICES = {
@@ -157,7 +172,6 @@ export class AppController {
         const mulTimes = f2State.mulTimes || 0;
         const discount = f2State.discount || 0;
 
-        // Perform calculations based on new logic
         const wifiSum = wifiQty * UNIT_PRICES.wifi;
         const deliveryFee = deliveryQty * UNIT_PRICES.delivery;
         const installFee = installQty * UNIT_PRICES.install;
@@ -169,9 +183,7 @@ export class AppController {
         
         const firstRbPrice = totalSumFromQuickQuote * mulTimes;
         const discountAmount = firstRbPrice * (discount / 100);
-        // Round up to the second decimal place
         const disRbPrice = Math.ceil(discountAmount * 100) / 100;
-
         const sumPrice = acceSum + eAcceSum + surchargeFee + disRbPrice;
 
         this.uiService.setF2Value('wifiSum', wifiSum);
@@ -186,7 +198,6 @@ export class AppController {
         this.uiService.setF2Value('sumPrice', sumPrice);
         
         this._publishStateChange();
-        console.log("--- F2 Summary Calculation Finished ---");
     }
     
     _handleNavigationToDetailView() {

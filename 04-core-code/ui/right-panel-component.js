@@ -33,22 +33,37 @@ export class RightPanelComponent {
         // --- Event Listeners for F2 Inputs ---
         const setupInputListener = (inputElement, eventName) => {
             if (inputElement) {
-                inputElement.addEventListener('input', (event) => {
+                const eventType = (inputElement.type === 'number') ? 'input' : 'change';
+                inputElement.addEventListener(eventType, (event) => {
                     this.eventAggregator.publish(eventName, {
                         id: event.target.id,
                         value: event.target.value
                     });
                 });
+                
+                inputElement.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        this.eventAggregator.publish('f2InputEnterPressed', { id: event.target.id });
+                    }
+                });
             }
         };
 
-        // Listen for QTY changes
-        const qtyInputs = [ this.f2.b10_wifiQty, this.f2.b13_deliveryQty, this.f2.b14_installQty, this.f2.b15_removalQty ];
-        qtyInputs.forEach(input => setupInputListener(input, 'f2QtyChanged'));
+        // Listen for all input changes
+        const inputs = [
+            this.f2.b10_wifiQty, this.f2.b13_deliveryQty, this.f2.b14_installQty,
+            this.f2.b15_removalQty, this.f2.b17_mulTimes, this.f2.b18_discount
+        ];
+        inputs.forEach(input => setupInputListener(input, 'f2ValueChanged'));
 
-        // Listen for other value changes (mul-times, discount)
-        const valueInputs = [ this.f2.b17_mulTimes, this.f2.b18_discount ];
-        valueInputs.forEach(input => setupInputListener(input, 'f2ValueChanged'));
+        this.eventAggregator.subscribe('focusElement', ({ elementId }) => {
+            const element = this.panelElement.querySelector(`#${elementId}`);
+            if (element) {
+                element.focus();
+                element.select();
+            }
+        });
     }
 
     _cacheF2Elements() {
@@ -115,7 +130,7 @@ export class RightPanelComponent {
         this.f2.b16_surchargeFee.textContent = formatIntegerCurrency(f2State.surchargeFee);
         
         // Render bottom section (mixed formatting)
-        this.f2.a17_totalSum.textContent = formatValue(f2State.totalSumForRbTime); // Display raw totalSum from quoteData
+        this.f2.a17_totalSum.textContent = formatValue(uiState.quoteData.summary.totalSum?.toFixed(2));
         this.f2.c17_1stRbPrice.textContent = formatDecimalCurrency(f2State.firstRbPrice);
         this.f2.b19_disRbPrice.textContent = formatDecimalCurrency(f2State.disRbPrice);
         this.f2.b20_singleprofit.textContent = formatDecimalCurrency(f2State.singleprofit);

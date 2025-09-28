@@ -24,7 +24,8 @@ export class InputHandler {
 
     _setupPhysicalKeyboard() {
         window.addEventListener('keydown', (event) => {
-            if (event.target.matches('input[type="text"]:not([readonly])')) {
+            // BUG FIX: Broaden the guard clause to ignore all non-readonly inputs
+            if (event.target.matches('input:not([readonly])')) {
                 return;
             }
             
