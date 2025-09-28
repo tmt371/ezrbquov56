@@ -186,10 +186,15 @@ class App {
         });
         
         this.appController.publishInitialState(); 
-        this.uiManager.cacheKeypadLayout(); // Cache the layout after initial render
         
         this.inputHandler = new InputHandler(this.eventAggregator);
         this.inputHandler.initialize(); 
+
+        // Cache the layout after a short delay to ensure the browser has finished rendering.
+        setTimeout(() => {
+            this.uiManager.cacheKeypadLayout();
+        }, 100);
+        
         console.log("Application running and interactive.");
     }
 }
