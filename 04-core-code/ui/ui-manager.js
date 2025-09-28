@@ -77,35 +77,48 @@ export class UIManager {
 
     _adjustLeftPanelLayout() {
         const leftPanel = this.leftPanelElement;
-        const resultsPanel = this.appElement.querySelector('.results-panel');
-        const typeKey = document.getElementById('key-type');
         const appContainer = this.appElement;
+        const key7 = document.getElementById('key-7');
+        const key0 = document.getElementById('key-0');
+        const typeKey = document.getElementById('key-type');
 
-        if (!leftPanel || !resultsPanel || !appContainer) return;
+        if (!leftPanel || !appContainer || !key7 || !key0 || !typeKey) return;
 
-        const resultsPanelRect = resultsPanel.getBoundingClientRect();
+        const key7Rect = key7.getBoundingClientRect();
+        const key0Rect = key0.getBoundingClientRect();
+        const typeKeyRect = typeKey.getBoundingClientRect();
 
-        // --- Vertical Positioning (Decoupled from keyboard) ---
-        // Aligns the panel's top and height with the stable results panel
-        leftPanel.style.top = `${resultsPanelRect.top}px`;
-        leftPanel.style.height = `${resultsPanelRect.height}px`;
+        // Check if the keyboard keys are visible and have dimensions
+        if (key7Rect.width > 0 && key0Rect.width > 0) {
+            // --- Top Calculation ---
+            // The panel's top position is aligned with the top of the '7' key
+            const dynamicTop = key7Rect.top;
 
-        // --- Horizontal Positioning (Smartly coupled with keyboard) ---
-        let dynamicWidth = 0;
-        const typeKeyRect = typeKey ? typeKey.getBoundingClientRect() : { width: 0, left: 0 };
+            // --- Height Calculation ---
+            // The panel's height is the distance from the top of the '7' key to the bottom of the '0' key
+            const dynamicHeight = key0Rect.bottom - key7Rect.top;
 
-        // Check if the TYPE key is visible and has dimensions
-        if (typeKeyRect.width > 0) {
-            // If visible, align the panel's right edge to the key's center
+            // --- Width Calculation ---
+            // The panel's right edge aligns to the center of the 'TYPE' key
             const typeKeyCenter = typeKeyRect.left + (typeKeyRect.width / 2);
-            dynamicWidth = typeKeyCenter;
+            const dynamicWidth = typeKeyCenter;
+
+            // Apply dynamic styles
+            leftPanel.style.top = `${dynamicTop}px`;
+            leftPanel.style.height = `${dynamicHeight}px`;
+            leftPanel.style.width = `${dynamicWidth}px`;
+
         } else {
-            // Fallback for mobile or when keyboard is collapsed
+            // Fallback for when the keyboard is collapsed/hidden
             const appContainerRect = appContainer.getBoundingClientRect();
-            dynamicWidth = appContainerRect.width * 0.45; // A safe percentage
+            const resultsPanel = this.appElement.querySelector('.results-panel');
+            if (!resultsPanel) return;
+            const resultsPanelRect = resultsPanel.getBoundingClientRect();
+            
+            leftPanel.style.top = `${resultsPanelRect.top}px`;
+            leftPanel.style.height = `${resultsPanelRect.height}px`;
+            leftPanel.style.width = `${appContainerRect.width * 0.45}px`; // A safe percentage
         }
-        
-        leftPanel.style.width = `${dynamicWidth}px`;
     }
 
     _initializeLeftPanelLayout() {
