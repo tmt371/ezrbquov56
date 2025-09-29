@@ -19,8 +19,6 @@ export class UIManager {
         this.mSelButton = document.getElementById('key-m-sel');
         this.clearButton = document.getElementById('key-clear');
         this.leftPanelElement = document.getElementById('left-panel');
-        
-        this.cachedKeypadLayout = null; 
 
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
@@ -74,77 +72,39 @@ export class UIManager {
         this._scrollToActiveCell(state);
     }
 
-    cacheKeypadLayout() {
-        // This method is kept for potential future use but is no longer central to the layout logic.
+    _adjustLeftPanelLayout() {
+        const leftPanel = this.leftPanelElement;
+        const typeColumnHeader = document.querySelector('#results-table th.col-type');
         const key7 = document.getElementById('key-7');
         const key0 = document.getElementById('key-0');
-        const typeKey = document.getElementById('key-type');
 
-        if (!key7 || !key0 || !typeKey) {
-            console.error("Could not find keypad keys to cache layout.");
+        if (!leftPanel || !typeColumnHeader || !key7 || !key0) {
+            console.error("One or more layout anchor elements are missing.");
             return;
         }
 
+        const typeHeaderRect = typeColumnHeader.getBoundingClientRect();
         const key7Rect = key7.getBoundingClientRect();
         const key0Rect = key0.getBoundingClientRect();
-        const typeKeyRect = typeKey.getBoundingClientRect();
 
-        if (key7Rect.width > 0) {
-            this.cachedKeypadLayout = {
-                top: key7Rect.top,
-                height: key0Rect.bottom - key7Rect.top,
-                width: typeKeyRect.left + (typeKeyRect.width / 2)
-            };
-            console.log("Keypad layout cached successfully:", this.cachedKeypadLayout);
-        }
-    }
+        // Ensure elements are visible and have dimensions before calculating
+        if (typeHeaderRect.width > 0 && key7Rect.width > 0) {
+            // Set width based on the center of the 'TYPE' column header
+            const dynamicWidth = typeHeaderRect.left + (typeHeaderRect.width / 2);
+            leftPanel.style.width = `${dynamicWidth}px`;
 
-    _adjustLeftPanelLayout() {
-        const leftPanel = this.leftPanelElement;
-        const appContainer = this.appElement;
-        const numericKeyboard = this.numericKeyboardPanel;
-
-        if (!leftPanel || !appContainer || !numericKeyboard) return;
-
-        const isKeyboardCollapsed = numericKeyboard.classList.contains('is-collapsed');
-
-        if (!isKeyboardCollapsed) {
-            // --- PRECISION MODE: Keyboard is visible, align with keys ---
-            const key7 = document.getElementById('key-7');
-            const key0 = document.getElementById('key-0');
-            const typeKey = document.getElementById('key-type');
-
-            if (!key7 || !key0 || !typeKey) return; 
-
-            const key7Rect = key7.getBoundingClientRect();
-            const key0Rect = key0.getBoundingClientRect();
-            const typeKeyRect = typeKey.getBoundingClientRect();
-
-            if (key7Rect.width > 0) {
-                leftPanel.style.top = `${key7Rect.top}px`;
-                leftPanel.style.height = `${key0Rect.bottom - key7Rect.top}px`;
-                leftPanel.style.width = `${typeKeyRect.left + (typeKeyRect.width / 2)}px`;
-            }
-        } else {
-            // --- FALLBACK MODE: Keyboard is collapsed, align with results panel ---
-            const resultsPanel = this.appElement.querySelector('.results-panel');
-            if (resultsPanel) {
-                const resultsPanelRect = resultsPanel.getBoundingClientRect();
-                leftPanel.style.top = `${resultsPanelRect.top}px`;
-                leftPanel.style.height = `${resultsPanelRect.height}px`;
-                leftPanel.style.width = `${appContainer.getBoundingClientRect().width * 0.45}px`;
-            }
+            // Set top and height based on the '7' and '0' keys
+            leftPanel.style.top = `${key7Rect.top}px`;
+            leftPanel.style.height = `${key0Rect.bottom - key7Rect.top}px`;
         }
     }
     
     _updateLeftPanelState(currentView) {
         if (this.leftPanelElement) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
-            
             if (isExpanded) {
                 this._adjustLeftPanelLayout();
             }
-            
             this.leftPanelElement.classList.toggle('is-expanded', isExpanded);
         }
     }

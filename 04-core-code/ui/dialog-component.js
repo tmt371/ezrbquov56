@@ -20,6 +20,17 @@ export class DialogComponent {
     }
 
     initialize() {
+        this.eventAggregator.subscribe('showWelcomeDialog', () => {
+            this.show({
+                message: 'Welcome to the Quoting Application!',
+                layout: [
+                    [
+                        { type: 'button', text: 'OK', callback: () => this.eventAggregator.publish('welcomeDialogConfirmed'), colspan: 3 }
+                    ]
+                ]
+            });
+        });
+
         this.eventAggregator.subscribe('showLoadConfirmationDialog', () => {
             this.show({
                 message: 'The current quote contains unsaved data. What would you like to do?',
@@ -65,7 +76,6 @@ export class DialogComponent {
                     const button = document.createElement('button');
                     button.className = 'dialog-button';
                     if (cellConfig.className) {
-                        // [BUG FIX] Use spread operator to handle multiple space-separated class names
                         button.classList.add(...cellConfig.className.split(' '));
                     }
                     button.textContent = cellConfig.text;
@@ -84,7 +94,6 @@ export class DialogComponent {
                 }
                 
                 if (cellConfig.className && cellConfig.type !== 'button') {
-                    // [BUG FIX] Also apply the robust class adding logic to the cell container itself
                      cell.classList.add(...cellConfig.className.split(' '));
                 }
 

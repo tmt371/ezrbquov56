@@ -21,8 +21,10 @@ export class UIService {
         this.state.dualChainInputValue = '';
         this.state.dualPrice = null;
 
+        this.state.welcomeDialogShown = false; // Add new state flag
+
         this._initializeDriveAccessoryState();
-        this._initializeF2SummaryState(); // New state initialization
+        this._initializeF2SummaryState();
         
         console.log("UIService Initialized.");
     }
@@ -105,8 +107,14 @@ export class UIService {
         this.state.dualChainInputValue = '';
         this.state.dualPrice = null;
 
+        this.state.welcomeDialogShown = false; // Also reset flag
+
         this._initializeDriveAccessoryState();
-        this._initializeF2SummaryState(); // Also reset F2 state
+        this._initializeF2SummaryState();
+    }
+
+    setWelcomeDialogShown(wasShown) {
+        this.state.welcomeDialogShown = wasShown;
     }
 
     setActiveCell(rowIndex, column) {

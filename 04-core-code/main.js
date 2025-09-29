@@ -184,16 +184,17 @@ class App {
         this.eventAggregator.subscribe('stateChanged', (state) => {
             this.uiManager.render(state);
         });
+
+        this.eventAggregator.subscribe('welcomeDialogConfirmed', () => {
+            this.uiManager._adjustLeftPanelLayout();
+        });
         
         this.appController.publishInitialState(); 
         
         this.inputHandler = new InputHandler(this.eventAggregator);
         this.inputHandler.initialize(); 
 
-        // Cache the layout after a short delay to ensure the browser has finished rendering.
-        setTimeout(() => {
-            this.uiManager.cacheKeypadLayout();
-        }, 100);
+        this.eventAggregator.publish('showWelcomeDialog');
         
         console.log("Application running and interactive.");
     }
