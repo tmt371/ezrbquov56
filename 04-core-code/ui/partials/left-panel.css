@@ -11,12 +11,9 @@
 }
 #left-panel {
     position: fixed;
-    /* [REFACTORED] Retain fixed width and left position for stable horizontal behavior. */
-    width: 90%;
-    max-width: 400px; 
     left: 0; 
-    /* [REFACTORED] Removed top and bottom properties. The panel's vertical position and height
-       are now dynamically set by ui-manager.js to align with the numeric keyboard. */
+    /* [REMOVED] The fixed width is removed to allow dynamic sizing by JavaScript. */
+    /* width: 400px; */
     background-color: var(--k1-bg-color);
     border: 1px solid var(--panel-border-color);
     border-left: none;
@@ -68,8 +65,7 @@
 #k3-tab.active { background-color: var(--k3-bg-color); border-color: var(--tab-active-color); color: #2c3e50; }
 #k4-tab.active { background-color: var(--k5-bg-color); border-color: var(--tab-active-color); color: #2c3e50; }
 #k5-tab.active { background-color: var(--k4-bg-color); border-color: var(--tab-active-color); color: #2c3e50; }
-/* [BUG FIX] Removed flex-grow to prevent the panel from stretching to full height by default. */
-.tab-content-container { padding: 15px; overflow-y: auto; }
+.tab-content-container { flex-grow: 1; padding: 15px; overflow-y: auto; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 #k1-content { background-color: var(--k1-bg-color); } #k2-content { background-color: var(--k2-bg-color); }
