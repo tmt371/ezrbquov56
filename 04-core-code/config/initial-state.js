@@ -73,7 +73,9 @@ export const initialState = {
                 motor: { count: 0, price: 0 },
                 remote: { type: 'standard', count: 0, price: 0 },
                 charger: { count: 0, price: 0 },
-                cord3m: { count: 0, price: 0 }
+                cord3m: { count: 0, price: 0 },
+                // [NEW] Add a field to store the calculated remote control cost sum
+                remoteCostSum: null
             }
         }
     }

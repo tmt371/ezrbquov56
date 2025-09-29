@@ -21,7 +21,12 @@ export class DriveAccessoriesView {
         const currentMode = this.uiService.getState().driveAccessoryMode;
         const newMode = currentMode === mode ? null : mode;
 
+        // [MODIFIED] When exiting a mode, perform necessary calculations.
         if (currentMode) {
+            // Specifically, when exiting 'remote' mode, calculate and store its cost.
+            if (currentMode === 'remote') {
+                this._calculateAndStoreRemoteCost();
+            }
             this.recalculateAllDriveAccessoryPrices();
         }
         
@@ -34,9 +39,7 @@ export class DriveAccessoriesView {
             const items = this.quoteService.getItems();
             const hasMotor = items.some(item => !!item.motor);
             if (hasMotor) {
-                if (newMode === 'remote' && this.uiService.getState().driveRemoteCount === 0) {
-                    this.uiService.setDriveAccessoryCount('remote', 1);
-                }
+                // Keep default behavior for charger, but not for remote anymore
                 if (newMode === 'charger' && this.uiService.getState().driveChargerCount === 0) {
                     this.uiService.setDriveAccessoryCount('charger', 1);
                 }
@@ -44,6 +47,31 @@ export class DriveAccessoriesView {
         }
 
         this.publish();
+    }
+
+    /**
+     * [NEW] Calculates the total cost of selected remotes and stores it in the quoteData state.
+     */
+    _calculateAndStoreRemoteCost() {
+        const state = this.uiService.getState();
+        const remoteCostKey = state.driveSelectedRemoteCostKey;
+        const remoteCount = state.driveRemoteCount;
+
+        // We only calculate if a specific cost key has been selected.
+        if (remoteCostKey && remoteCount > 0) {
+            // Note: This relies on a new method in calculation-service which we will add.
+            // For now, we assume it exists and will calculate the cost.
+            // The sale price is calculated separately in recalculateAllDriveAccessoryPrices.
+            const totalCost = this.calculationService.calculateAccessoryPrice(
+                this.quoteService.getCurrentProductType(),
+                'remote', // We tell the service it's a remote
+                { count: remoteCount, costKey: remoteCostKey } // We pass the cost key
+            );
+            this.quoteService.updateRemoteCostSum(totalCost);
+        } else {
+            // If no remote is selected or quantity is zero, ensure the cost is null.
+            this.quoteService.updateRemoteCostSum(null);
+        }
     }
 
     handleTableCellClick({ rowIndex, column }) {
@@ -150,7 +178,10 @@ export class DriveAccessoriesView {
         grandTotal += motorPrice;
         
         const remoteCount = state.driveRemoteCount;
-        const remotePrice = this.calculationService.calculateAccessoryPrice(productType, 'remote', { count: remoteCount });
+        // The sale price calculation remains unchanged as per the instructions.
+        const remotePrice = this.calculationService.calculateAccessoryPrice(productType, 'remote', { 
+            count: remoteCount
+        });
         this.uiService.setDriveAccessoryTotalPrice('remote', remotePrice);
         summaryData.remote = { type: 'standard', count: remoteCount, price: remotePrice };
         grandTotal += remotePrice;

@@ -92,6 +92,9 @@ export class AppController {
         this.eventAggregator.subscribe('chainEnterPressed', (data) => delegate('handleChainEnterPressed', data));
         this.eventAggregator.subscribe('driveModeChanged', (data) => delegate('handleDriveModeChange', data));
         this.eventAggregator.subscribe('accessoryCounterChanged', (data) => delegate('handleAccessoryCounterChange', data));
+
+        // [NEW] Subscribe to the new event for starting the remote selection dialog flow
+        this.eventAggregator.subscribe('userInitiatedRemoteSelection', () => this._handleRemoteSelection());
     }
 
     _subscribeGlobalEvents() {
@@ -110,6 +113,61 @@ export class AppController {
         this.eventAggregator.subscribe('toggleFeeExclusion', (data) => this._handleToggleFeeExclusion(data));
     }
     
+    // --- [NEW] Methods for Remote Selection Dialog Flow ---
+
+    _cancelRemoteSelection() {
+        this.uiService.setDriveAccessoryMode(null);
+        this.uiService.setDriveSelectedRemoteCostKey(null);
+        this._publishStateChange();
+    }
+
+    _setSelectedRemoteAndActivate(costKey) {
+        this.uiService.setDriveSelectedRemoteCostKey(costKey);
+        // Activate the remote mode in the UI (highlights button, enables counters)
+        this.detailConfigView.handleDriveModeChange({ mode: 'remote' });
+        // No need to recalculate here, the cost calculation happens on mode EXIT.
+        this._publishStateChange();
+    }
+    
+    _showAlphaRemoteDialog() {
+        const layout = [
+            [{ type: 'button', text: '1CH', callback: () => this._setSelectedRemoteAndActivate('cost-A-1ch-remote') }],
+            [{ type: 'button', text: '4CH', callback: () => this._setSelectedRemoteAndActivate('cost-A-4ch-remote') }],
+            [{ type: 'button', text: '16CH', callback: () => this._setSelectedRemoteAndActivate('cost-A-16ch-remote') }],
+            [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
+        ];
+        this.eventAggregator.publish('showConfirmationDialog', {
+            message: '請問你要用哪一款遙控器？',
+            layout: layout
+        });
+    }
+
+    _showLinxRemoteDialog() {
+        const layout = [
+            [{ type: 'button', text: '1CH', callback: () => this._setSelectedRemoteAndActivate('cost-L-1ch-remote') }],
+            [{ type: 'button', text: '16CH', callback: () => this._setSelectedRemoteAndActivate('cost-L-16ch-remote') }],
+            [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
+        ];
+        this.eventAggregator.publish('showConfirmationDialog', {
+            message: '請問你要用哪一款遙控器？',
+            layout: layout
+        });
+    }
+
+    _handleRemoteSelection() {
+        const layout = [
+            [{ type: 'button', text: 'Alpha', callback: () => this._showAlphaRemoteDialog(), closeOnClick: false }],
+            [{ type: 'button', text: 'Linx', callback: () => this._showLinxRemoteDialog(), closeOnClick: false }],
+            [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
+        ];
+        this.eventAggregator.publish('showConfirmationDialog', {
+            message: '請問你要用哪一廠牌遙控器？',
+            layout: layout
+        });
+    }
+
+    // --- End of New Methods ---
+
     _handleToggleFeeExclusion({ feeType }) {
         this.uiService.toggleF2FeeExclusion(feeType);
         this._calculateF2Summary();
@@ -144,13 +202,11 @@ export class AppController {
     }
     
     _calculateF2Summary() {
-        // --- Pre-calculation Step 1: Recalculate main quote to get the latest totalSum ---
         const productStrategy = this.quickQuoteView.productFactory.getProductStrategy('rollerBlind');
         const { updatedQuoteData } = this.calculationService.calculateAndSum(this.quoteService.getQuoteData(), productStrategy);
         this.quoteService.quoteData = updatedQuoteData;
         const totalSumFromQuickQuote = updatedQuoteData.summary.totalSum || 0;
 
-        // --- Pre-calculation Step 2: Recalculate accessories ---
         this.detailConfigView.driveAccessoriesView.recalculateAllDriveAccessoryPrices();
         this.detailConfigView.dualChainView.recalculateDualPrice();
         

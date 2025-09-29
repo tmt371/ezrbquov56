@@ -47,6 +47,9 @@ export class UIService {
         this.state.summaryChargerPrice = null;
         this.state.summaryCordPrice = null;
         this.state.summaryAccessoriesTotal = null;
+        
+        // [NEW] Add state to store the selected remote control's COST key
+        this.state.driveSelectedRemoteCostKey = null;
     }
 
     _initializeF2SummaryState() {
@@ -145,8 +148,6 @@ export class UIService {
     clearRowSelection() {
         this.state.selectedRowIndex = null;
     }
-
-
 
     toggleMultiSelectMode() {
         const isEnteringMode = !this.state.isMultiSelectMode;
@@ -258,6 +259,11 @@ export class UIService {
             case 'cord': this.state.driveCordCount = count; break;
         }
     }
+    
+    // [NEW] Add setter for the new remote cost type key
+    setDriveSelectedRemoteCostKey(key) {
+        this.state.driveSelectedRemoteCostKey = key;
+    }
 
     setDriveAccessoryTotalPrice(accessory, price) {
         switch(accessory) {
@@ -297,11 +303,6 @@ export class UIService {
         this.state.summaryAccessoriesTotal = value;
     }
 
-    /**
-     * A generic setter for F2 summary state properties.
-     * @param {string} key - The key within the state.f2 object.
-     * @param {*} value - The new value to set.
-     */
     setF2Value(key, value) {
         if (this.state.f2.hasOwnProperty(key)) {
             this.state.f2[key] = value;

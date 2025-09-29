@@ -122,6 +122,13 @@ export class QuoteService {
         }
     }
 
+    // [NEW] Adds a method to update the calculated remote control cost sum.
+    updateRemoteCostSum(cost) {
+        if (this.quoteData.summary && this.quoteData.summary.accessories) {
+            this.quoteData.summary.accessories.remoteCostSum = cost;
+        }
+    }
+
     cycleK3Property(rowIndex, column) {
         const item = this._getItems()[rowIndex];
         if (!item) return false;
@@ -259,18 +266,17 @@ export class QuoteService {
         return changed;
     }
 
-    // [NEW] Sets the fabric type for a specific selection of items.
     batchUpdateFabricTypeForSelection(selectedIndexes, newType) {
         const items = this._getItems();
         let changed = false;
         for (const index of selectedIndexes) {
             const item = items[index];
-            // Ensure item exists and is eligible (has dimensions)
             if (item && item.width && item.height) {
                 if (item.fabricType !== newType) {
                     item.fabricType = newType;
                     item.linePrice = null;
                     changed = true;
+
                 }
             }
         }

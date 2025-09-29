@@ -156,9 +156,16 @@ export class LeftPanelInputHandler {
         const setupK5ModeButton = (buttonId, mode) => {
             const button = document.getElementById(buttonId);
             if (button) {
-                button.addEventListener('click', () => {
-                    this.eventAggregator.publish('driveModeChanged', { mode });
-                });
+                // [MODIFIED] Special handling for the remote button to trigger a dialog flow
+                if (buttonId === 'btn-k5-remote') {
+                    button.addEventListener('click', () => {
+                        this.eventAggregator.publish('userInitiatedRemoteSelection');
+                    });
+                } else {
+                    button.addEventListener('click', () => {
+                        this.eventAggregator.publish('driveModeChanged', { mode });
+                    });
+                }
             }
         };
         setupK5ModeButton('btn-k5-winder', 'winder');

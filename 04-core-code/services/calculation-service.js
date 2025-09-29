@@ -60,21 +60,41 @@ export class CalculationService {
         return { updatedQuoteData, firstError };
     }
 
-    // [NEW] Generic bridge method to calculate any accessory price via the strategy pattern.
+    /**
+     * [MODIFIED] Generic bridge method to calculate accessory prices OR costs.
+     * It now checks if a specific 'costKey' is passed in the data object.
+     * If so, it calculates cost. Otherwise, it calculates the sale price.
+     * @param {string} productType - The product type (e.g., 'rollerBlind').
+     * @param {string} accessoryName - The generic name of the accessory (e.g., 'remote').
+     * @param {object} data - Data needed for calculation (e.g., { items }, { count, costKey }).
+     * @returns {number} The calculated price or cost.
+     */
     calculateAccessoryPrice(productType, accessoryName, data) {
         const productStrategy = this.productFactory.getProductStrategy(productType);
         if (!productStrategy) return 0;
 
-        const priceKeyMap = {
-            'dual': 'comboBracket',
-            'winder': 'winderHD',
-            'motor': 'motorStandard',
-            'remote': 'remoteStandard',
-            'charger': 'chargerStandard',
-            'cord': 'cord3m'
-        };
-        const priceKey = priceKeyMap[accessoryName];
-        if (!priceKey) return 0;
+        let priceKey;
+
+        // Check if a specific cost key is passed for cost calculation
+        if (data && data.costKey) {
+            priceKey = data.costKey;
+        } else {
+            // Otherwise, use the standard sale price mapping
+            const priceKeyMap = {
+                'dual': 'comboBracket',
+                'winder': 'winderHD',
+                'motor': 'motorStandard',
+                'remote': 'remoteStandard', // This remains the default SALE price
+                'charger': 'chargerStandard',
+                'cord': 'cord3m'
+            };
+            priceKey = priceKeyMap[accessoryName];
+        }
+        
+        if (!priceKey) {
+            console.error(`No price key found for accessory: ${accessoryName}`);
+            return 0;
+        }
 
         const pricePerUnit = this.configManager.getAccessoryPrice(priceKey);
         if (pricePerUnit === null) return 0;
