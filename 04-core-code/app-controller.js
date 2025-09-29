@@ -50,7 +50,7 @@ export class AppController {
         this.eventAggregator.subscribe('userToggledMultiSelectMode', () => delegate('handleToggleMultiSelectMode'));
         this.eventAggregator.subscribe('userChoseSaveThenLoad', () => delegate('handleSaveThenLoad'));
         this.eventAggregator.subscribe('typeCellLongPressed', (data) => delegate('handleTypeCellLongPress', data));
-        this.eventAggregator.subscribe('typeButtonLongPressed', (data) => delegate('handleTypeButtonLongPress', data));
+        this.eventAggregator.subscribe('typeButtonLongPressed', (data) => delegate('handleTypeButtonLongPressed', data));
         this.eventAggregator.subscribe('userRequestedMultiTypeSet', () => delegate('handleMultiTypeSet'));
     }
 
@@ -103,6 +103,9 @@ export class AppController {
         this.eventAggregator.subscribe('userRequestedLoad', () => this._handleUserRequestedLoad());
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());
         this.eventAggregator.subscribe('fileLoaded', (data) => this._handleFileLoad(data));
+        
+        // [NEW] Subscribe to the event from the welcome dialog to save the cost discount
+        this.eventAggregator.subscribe('costDiscountEntered', (data) => this._handleCostDiscountEntered(data));
     }
 
     _subscribeF2Events() {
@@ -110,6 +113,13 @@ export class AppController {
         this.eventAggregator.subscribe('f2ValueChanged', (data) => this._handleF2ValueChange(data));
         this.eventAggregator.subscribe('f2InputEnterPressed', (data) => this._focusNextF2Input(data.id));
         this.eventAggregator.subscribe('toggleFeeExclusion', (data) => this._handleToggleFeeExclusion(data));
+    }
+    
+    // --- [NEW] Method to handle cost discount ---
+    _handleCostDiscountEntered({ percentage }) {
+        this.quoteService.setCostDiscount(percentage);
+        // For debugging, you can log the data to confirm it's saved.
+        // console.log('Cost discount saved:', this.quoteService.getQuoteData().costDiscountPercentage);
     }
     
     // --- Methods for Remote Selection Dialog Flow ---
@@ -151,18 +161,12 @@ export class AppController {
         });
     }
 
-    /**
-     * [BUG FIX] Handles the remote selection process.
-     * It now checks the current state before initiating the dialog flow.
-     */
     _handleRemoteSelection() {
         const currentMode = this.uiService.getState().driveAccessoryMode;
 
         if (currentMode === 'remote') {
-            // If remote mode is already active, clicking again should exit the mode.
             this.detailConfigView.handleDriveModeChange({ mode: 'remote' });
         } else {
-            // If remote mode is not active, start the brand selection dialog flow.
             const layout = [
                 [{ type: 'button', text: 'Alpha', callback: () => this._showAlphaRemoteDialog(), closeOnClick: false }],
                 [{ type: 'button', text: 'Linx', callback: () => this._showLinxRemoteDialog(), closeOnClick: false }],
@@ -174,8 +178,6 @@ export class AppController {
             });
         }
     }
-
-    // --- End of Remote Selection Methods ---
 
     _handleToggleFeeExclusion({ feeType }) {
         this.uiService.toggleF2FeeExclusion(feeType);

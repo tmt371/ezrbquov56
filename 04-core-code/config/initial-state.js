@@ -53,11 +53,13 @@ export const initialState = {
                 motor: ''
             }
         ],
-        // 報價單元數據 (未來擴充用)
+        // 報價單元數據
         quoteId: null,
         issueDate: null,
         dueDate: null,
         status: "Configuring",
+        // [NEW] Add a field for the cost discount percentage
+        costDiscountPercentage: 0,
         customer: { 
             name: "",
             address: "",
@@ -67,7 +69,6 @@ export const initialState = {
         // 總價總結
         summary: { 
             totalSum: null,
-            // --- K5 Accessories Data ---
             accessories: {
                 winder: { count: 0, price: 0 },
                 motor: { count: 0, price: 0 },
@@ -75,11 +76,12 @@ export const initialState = {
                 charger: { count: 0, price: 0 },
                 cord3m: { count: 0, price: 0 },
                 remoteCostSum: null,
-                // [NEW] Add fields to store calculated accessory cost sums
                 winderCostSum: null,
                 motorCostSum: null,
                 chargerCostSum: null,
-                cordCostSum: null
+                cordCostSum: null,
+                // [NEW] Add a field to store the calculated dual bracket cost sum
+                dualCostSum: null
             }
         }
     }

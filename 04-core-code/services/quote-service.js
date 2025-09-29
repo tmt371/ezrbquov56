@@ -128,7 +128,6 @@ export class QuoteService {
         }
     }
 
-    // [NEW] Add setter methods for the new accessory cost sum fields
     updateWinderCostSum(cost) {
         if (this.quoteData.summary && this.quoteData.summary.accessories) {
             this.quoteData.summary.accessories.winderCostSum = cost;
@@ -151,6 +150,17 @@ export class QuoteService {
         if (this.quoteData.summary && this.quoteData.summary.accessories) {
             this.quoteData.summary.accessories.cordCostSum = cost;
         }
+    }
+
+    // [NEW] Add setter methods for the new cost and discount fields
+    updateDualCostSum(cost) {
+        if (this.quoteData.summary && this.quoteData.summary.accessories) {
+            this.quoteData.summary.accessories.dualCostSum = cost;
+        }
+    }
+
+    setCostDiscount(percentage) {
+        this.quoteData.costDiscountPercentage = percentage;
     }
 
     cycleK3Property(rowIndex, column) {

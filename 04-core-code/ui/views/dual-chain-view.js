@@ -18,12 +18,16 @@ export class DualChainView {
      */
     handleModeChange({ mode }) {
         const currentMode = this.uiService.getState().dualChainMode;
-
-        if (currentMode === 'dual') {
-            this.recalculateDualPrice();
-        }
-
         const newMode = currentMode === mode ? null : mode;
+
+        // When exiting a mode, perform final calculations.
+        if (currentMode === 'dual') {
+            const success = this.recalculateDualPrice(); // Recalculate sale price
+            if (success) {
+                this._calculateAndStoreDualCost(); // Recalculate cost price
+            }
+        }
+        
         this.uiService.setDualChainMode(newMode);
 
         if (newMode === 'dual') {
@@ -36,6 +40,25 @@ export class DualChainView {
         }
 
         this.publish();
+    }
+
+    /**
+     * [NEW] Calculates the total cost of dual brackets and stores it in the quoteData state.
+     */
+    _calculateAndStoreDualCost() {
+        const items = this.quoteService.getItems();
+        const dualCount = items.filter(item => item.dual === 'D').length;
+
+        if (dualCount > 0) {
+            const totalCost = this.calculationService.calculateAccessoryPrice(
+                this.quoteService.getCurrentProductType(),
+                'dual',
+                { items: items, costKey: 'cost-combo-dual' }
+            );
+            this.quoteService.updateDualCostSum(totalCost);
+        } else {
+            this.quoteService.updateDualCostSum(null);
+        }
     }
 
     /**

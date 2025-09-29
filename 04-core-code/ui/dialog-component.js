@@ -20,12 +20,46 @@ export class DialogComponent {
     }
 
     initialize() {
+        // [MODIFIED] The welcome dialog is now an interactive form for cost discount input.
         this.eventAggregator.subscribe('showWelcomeDialog', () => {
             this.show({
-                message: 'Welcome to the Quoting Application!',
+                message: '請問捲簾所套用的成本折扣數為多少％？',
                 layout: [
                     [
-                        { type: 'button', text: 'OK', callback: () => this.eventAggregator.publish('welcomeDialogConfirmed'), colspan: 3 }
+                        { 
+                            type: 'input', 
+                            id: 'dialog-input-cost-dis',
+                            placeholder: '輸入 0 到 100 之間的正整數',
+                            colspan: 3 
+                        }
+                    ],
+                    [
+                        { 
+                            type: 'button', 
+                            text: '確定', 
+                            colspan: 3,
+                            callback: () => {
+                                const inputElement = document.getElementById('dialog-input-cost-dis');
+                                const value = inputElement.value;
+                                const percentage = parseInt(value, 10);
+
+                                if (value === '' || isNaN(percentage) || percentage < 0 || percentage > 100) {
+                                    this.eventAggregator.publish('showNotification', { 
+                                        message: '輸入無效。請輸入 0 到 100 之間的正整數。', 
+                                        type: 'error' 
+                                    });
+                                    // By returning 'false', we can potentially prevent the dialog from closing,
+                                    // but we need to modify the event listener logic in show() for that.
+                                    // For now, we just show an error. The user will have to reopen if they make a mistake.
+                                    // Let's refine this by not closing on invalid input.
+                                    return false; // Indicate failure
+                                } else {
+                                    this.eventAggregator.publish('costDiscountEntered', { percentage });
+                                    this.eventAggregator.publish('welcomeDialogConfirmed');
+                                    return true; // Indicate success
+                                }
+                            }
+                        }
                     ]
                 ]
             });
@@ -81,16 +115,32 @@ export class DialogComponent {
                     button.textContent = cellConfig.text;
                     
                     button.addEventListener('click', () => {
+                        let shouldHide = true;
                         if (cellConfig.callback && typeof cellConfig.callback === 'function') {
-                            cellConfig.callback();
+                            const callbackResult = cellConfig.callback();
+                            // If the callback returns false, it signals that we should not close the dialog.
+                            if (callbackResult === false) {
+                                shouldHide = false;
+                            }
                         }
-                        // [MODIFIED] Only hide the dialog if the button's configuration does not explicitly prevent it.
-                        // This allows for multi-step dialogs where intermediate buttons should not close the dialog.
-                        if (cellConfig.closeOnClick !== false) {
+                        
+                        if (cellConfig.closeOnClick !== false && shouldHide) {
                             this.hide();
                         }
                     });
                     cell.appendChild(button);
+
+                } else if (cellConfig.type === 'input') {
+                    // [NEW] Add support for creating input fields
+                    cell.classList.add('input-cell');
+                    const input = document.createElement('input');
+                    input.className = 'dialog-input';
+                    input.id = cellConfig.id;
+                    input.type = 'number';
+                    input.placeholder = cellConfig.placeholder || '';
+                    input.min = 0;
+                    input.max = 100;
+                    cell.appendChild(input);
 
                 } else if (cellConfig.type === 'text') {
                     cell.classList.add('text-cell');
