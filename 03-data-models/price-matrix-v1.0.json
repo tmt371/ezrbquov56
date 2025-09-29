@@ -140,18 +140,6 @@
     "motorStandard": { "price": 250, "unit": "each" },
     "remoteStandard": { "price": 100, "unit": "each" },
     "chargerStandard": { "price": 50, "unit": "each" },
-    "cord3m": { "price": 15, "unit": "each" },
-
-    "cost-winder": { "price": 8 },
-    "cost-motor": { "price": 160 },
-    "cost-L-1ch-remote": { "price": 40 },
-    "cost-L-16ch-remote": { "price": 70 },
-    "cost-charger": { "price": 25 },
-    "cost-3mcord": { "price": 5 },
-    "cost-combo-dual": { "price": 10 },
-    "cost-slim-dual": { "price": 15 },
-    "cost-A-1ch-remote": { "price": 40 },
-    "cost-A-4ch-remote": { "price": 50 },
-    "cost-A-16ch-remote": { "price": 70 }
+    "cord3m": { "price": 15, "unit": "each" }
   }
 }

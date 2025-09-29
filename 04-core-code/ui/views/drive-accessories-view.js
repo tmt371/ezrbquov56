@@ -150,11 +150,7 @@ export class DriveAccessoriesView {
         grandTotal += motorPrice;
         
         const remoteCount = state.driveRemoteCount;
-        // [MODIFIED] Pass the selected remote type key to the calculation service
-        const remotePrice = this.calculationService.calculateAccessoryPrice(productType, 'remote', { 
-            count: remoteCount, 
-            remoteTypeKey: state.driveSelectedRemoteTypeKey 
-        });
+        const remotePrice = this.calculationService.calculateAccessoryPrice(productType, 'remote', { count: remoteCount });
         this.uiService.setDriveAccessoryTotalPrice('remote', remotePrice);
         summaryData.remote = { type: 'standard', count: remoteCount, price: remotePrice };
         grandTotal += remotePrice;

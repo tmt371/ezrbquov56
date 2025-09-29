@@ -47,9 +47,6 @@ export class UIService {
         this.state.summaryChargerPrice = null;
         this.state.summaryCordPrice = null;
         this.state.summaryAccessoriesTotal = null;
-        
-        // [NEW] Add state to store the selected remote control type key
-        this.state.driveSelectedRemoteTypeKey = null;
     }
 
     _initializeF2SummaryState() {
@@ -148,6 +145,8 @@ export class UIService {
     clearRowSelection() {
         this.state.selectedRowIndex = null;
     }
+
+
 
     toggleMultiSelectMode() {
         const isEnteringMode = !this.state.isMultiSelectMode;
@@ -258,11 +257,6 @@ export class UIService {
             case 'charger': this.state.driveChargerCount = count; break;
             case 'cord': this.state.driveCordCount = count; break;
         }
-    }
-    
-    // [NEW] Add setter for the new remote type state
-    setDriveSelectedRemoteTypeKey(key) {
-        this.state.driveSelectedRemoteTypeKey = key;
     }
 
     setDriveAccessoryTotalPrice(accessory, price) {
