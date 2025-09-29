@@ -66,39 +66,45 @@ export class RollerBlindStrategy {
             height: null,
             fabricType: null,
             linePrice: null,
-            // --- [NEW] Phase 2 Fields ---
-            location: '',       // K1: 安裝處所
-            fabric: '',         // K1: 布料名稱
-            color: '',          // K1: 布料顏色
-            over: '',           // K2: 正反捲 (O / '')
-            oi: '',             // K2: 內外裝 (IN / OUT)
-            lr: '',             // K2: 左右拉繩 (L / R)
-            dual: '',           // K3: 雙層支架 (D / '')
-            chain: null,        // K3: 拉繩長度 (mm)
-            winder: '',         // K4: 強化捲軸器 (HD / '')
-            motor: ''           // K4: 電動馬達 (B-motor / '')
+            // --- Phase 2 Fields ---
+            location: '',
+            fabric: '',
+            color: '',
+            over: '',
+            oi: '',
+            lr: '',
+            dual: '',
+            chain: null,
+            winder: '',
+            motor: ''
         };
     }
 
-    // --- [NEW] Accessory Pricing Logic ---
-    // The following methods are migrated from calculation-service.js
-    // They now contain the product-specific LOGIC (e.g., how to count items).
-    // The price value itself is passed in by the caller.
+    // --- Accessory Pricing Logic ---
 
     calculateDualPrice(items, pricePerPair) {
         const dualCount = items.filter(item => item.dual === 'D').length;
-        // The logic that "dual must be in pairs" is a business rule for this product.
         const totalPrice = Math.floor(dualCount / 2) * pricePerPair;
         return totalPrice;
     }
 
-    calculateWinderPrice(items, pricePerUnit) {
-        const count = items.filter(item => item.winder === 'HD').length;
+    /**
+     * [REFACTORED] Accepts a pre-calculated count instead of the full items array.
+     * @param {number} count - The number of winders.
+     * @param {number} pricePerUnit - The price for a single winder.
+     * @returns {number} The total price.
+     */
+    calculateWinderPrice(count, pricePerUnit) {
         return count * pricePerUnit;
     }
 
-    calculateMotorPrice(items, pricePerUnit) {
-        const count = items.filter(item => !!item.motor).length;
+    /**
+     * [REFACTORED] Accepts a pre-calculated count instead of the full items array.
+     * @param {number} count - The number of motors.
+     * @param {number} pricePerUnit - The price for a single motor.
+     * @returns {number} The total price.
+     */
+    calculateMotorPrice(count, pricePerUnit) {
         return count * pricePerUnit;
     }
 

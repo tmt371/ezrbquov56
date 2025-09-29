@@ -21,9 +21,7 @@ export class DriveAccessoriesView {
         const currentMode = this.uiService.getState().driveAccessoryMode;
         const newMode = currentMode === mode ? null : mode;
 
-        // [MODIFIED] When exiting a mode, perform necessary calculations.
         if (currentMode) {
-            // Trigger cost calculation for the mode being exited
             switch (currentMode) {
                 case 'winder':
                     this._calculateAndStoreWinderCost();
@@ -41,7 +39,6 @@ export class DriveAccessoriesView {
                     this._calculateAndStoreCordCost();
                     break;
             }
-            // Always recalculate the sale prices after any mode change.
             this.recalculateAllDriveAccessoryPrices();
         }
         
@@ -54,8 +51,6 @@ export class DriveAccessoriesView {
 
         this.publish();
     }
-
-    // --- [NEW] Private methods for calculating and storing accessory costs ---
 
     _calculateAndStoreWinderCost() {
         const items = this.quoteService.getItems();
@@ -133,8 +128,6 @@ export class DriveAccessoriesView {
             this.quoteService.updateCordCostSum(null);
         }
     }
-
-    // --- End of new methods ---
 
     handleTableCellClick({ rowIndex, column }) {
         const { driveAccessoryMode } = this.uiService.getState();
@@ -227,14 +220,16 @@ export class DriveAccessoriesView {
         const summaryData = {};
         let grandTotal = 0;
 
-        const winderPrice = this.calculationService.calculateAccessoryPrice(productType, 'winder', { items });
+        // [MODIFIED] Calculate count here and pass it to the service to align with the new strategy
         const winderCount = items.filter(item => item.winder === 'HD').length;
+        const winderPrice = this.calculationService.calculateAccessoryPrice(productType, 'winder', { count: winderCount });
         this.uiService.setDriveAccessoryTotalPrice('winder', winderPrice);
         summaryData.winder = { count: winderCount, price: winderPrice };
         grandTotal += winderPrice;
 
-        const motorPrice = this.calculationService.calculateAccessoryPrice(productType, 'motor', { items });
+        // [MODIFIED] Calculate count here and pass it to the service to align with the new strategy
         const motorCount = items.filter(item => !!item.motor).length;
+        const motorPrice = this.calculationService.calculateAccessoryPrice(productType, 'motor', { count: motorCount });
         this.uiService.setDriveAccessoryTotalPrice('motor', motorPrice);
         summaryData.motor = { count: motorCount, price: motorPrice };
         grandTotal += motorPrice;
