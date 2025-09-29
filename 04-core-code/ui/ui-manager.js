@@ -138,18 +138,13 @@ export class UIManager {
     }
 
     _initializeLeftPanelLayout() {
+        // The ResizeObserver ensures the layout is recalculated if the window size changes.
         const resizeObserver = new ResizeObserver(() => {
             if (this.leftPanelElement.classList.contains('is-expanded')) {
                 this._adjustLeftPanelLayout();
             }
         });
         resizeObserver.observe(this.appElement);
-
-        new MutationObserver(() => {
-            if(this.leftPanelElement.classList.contains('is-expanded')) {
-                 this._adjustLeftPanelLayout();
-            }
-        }).observe(this.numericKeyboardPanel, { attributes: true, attributeFilter: ['class'] });
     }
     
     _updateLeftPanelState(currentView) {
