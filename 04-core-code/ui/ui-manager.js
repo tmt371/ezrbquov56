@@ -52,7 +52,7 @@ export class UIManager {
         });
 
         this.initialize();
-        this._initializeLeftPanelLayout(); // Changed from previous version
+        this._initializeLeftPanelLayout();
     }
 
     initialize() {
@@ -74,53 +74,88 @@ export class UIManager {
     }
 
     _adjustLeftPanelLayout() {
+        console.log("%c--- Adjusting Left Panel Layout ---", "color: blue; font-weight: bold;");
         const leftPanel = this.leftPanelElement;
         const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
 
-        if (!leftPanel || !appContainer || !numericKeyboard) return;
+        if (!leftPanel || !appContainer || !numericKeyboard) {
+            console.error("Layout adjustment aborted: One or more critical elements not found.");
+            return;
+        }
 
         const isKeyboardCollapsed = numericKeyboard.classList.contains('is-collapsed');
+        console.log(`%cKeyboard collapsed state: ${isKeyboardCollapsed}`, "color: purple;");
 
         if (!isKeyboardCollapsed) {
+            console.log("-> Entering PRECISION MODE (calculating based on keys).");
             const key7 = document.getElementById('key-7');
             const key0 = document.getElementById('key-0');
             const typeKey = document.getElementById('key-type');
-            if (!key7 || !key0 || !typeKey) return; 
+            if (!key7 || !key0 || !typeKey) {
+                console.error("Precision mode aborted: One or more keypad keys not found.");
+                return; 
+            }
 
             const key7Rect = key7.getBoundingClientRect();
             const key0Rect = key0.getBoundingClientRect();
             const typeKeyRect = typeKey.getBoundingClientRect();
+            console.log("Measured Key Coordinates:", { key7: key7Rect, key0: key0Rect, typeKey: typeKeyRect });
 
             if (key7Rect.width > 0) {
-                leftPanel.style.top = `${key7Rect.top}px`;
-                leftPanel.style.height = `${key0Rect.bottom - key7Rect.top}px`;
-                leftPanel.style.width = `${typeKeyRect.left + (typeKeyRect.width / 2)}px`;
+                const dynamicTop = key7Rect.top;
+                const dynamicHeight = key0Rect.bottom - key7Rect.top;
+                const dynamicWidth = typeKeyRect.left + (typeKeyRect.width / 2);
+                console.log("%cCalculated Styles (Precision):", "color: green;", { top: dynamicTop, height: dynamicHeight, width: dynamicWidth });
+                
+                leftPanel.style.top = `${dynamicTop}px`;
+                leftPanel.style.height = `${dynamicHeight}px`;
+                leftPanel.style.width = `${dynamicWidth}px`;
+            } else {
+                console.warn("Keys have no width, precision layout skipped.");
             }
         } else {
+            console.log("-> Entering FALLBACK MODE (calculating based on results panel).");
             const resultsPanel = this.appElement.querySelector('.results-panel');
             if (resultsPanel) {
                 const resultsPanelRect = resultsPanel.getBoundingClientRect();
-                leftPanel.style.top = `${resultsPanelRect.top}px`;
-                leftPanel.style.height = `${resultsPanelRect.height}px`;
-                leftPanel.style.width = `${appContainer.getBoundingClientRect().width * 0.45}px`;
+                const appContainerRect = appContainer.getBoundingClientRect();
+                console.log("Measured Container Coordinates:", { resultsPanel: resultsPanelRect, appContainer: appContainerRect });
+
+                const dynamicTop = resultsPanelRect.top;
+                const dynamicHeight = resultsPanelRect.height;
+                const dynamicWidth = appContainerRect.width * 0.45;
+                console.log("%cCalculated Styles (Fallback):", "color: orange;", { top: dynamicTop, height: dynamicHeight, width: dynamicWidth });
+
+                leftPanel.style.top = `${dynamicTop}px`;
+                leftPanel.style.height = `${dynamicHeight}px`;
+                leftPanel.style.width = `${dynamicWidth}px`;
+            } else {
+                 console.error("Fallback mode aborted: Results panel not found.");
             }
         }
+        console.log("%c--- Left Panel Layout Adjustment Finished ---", "color: blue; font-weight: bold;");
     }
 
     _initializeLeftPanelLayout() {
-        // The ResizeObserver ensures the layout is recalculated if the window size changes.
         const resizeObserver = new ResizeObserver(() => {
             if (this.leftPanelElement.classList.contains('is-expanded')) {
                 this._adjustLeftPanelLayout();
             }
         });
         resizeObserver.observe(this.appElement);
+
+        new MutationObserver(() => {
+            if(this.leftPanelElement.classList.contains('is-expanded')) {
+                 this._adjustLeftPanelLayout();
+            }
+        }).observe(this.numericKeyboardPanel, { attributes: true, attributeFilter: ['class'] });
     }
     
     _updateLeftPanelState(currentView) {
         if (this.leftPanelElement) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
+            console.log(`Updating left panel state. Is expanding? ${isExpanded}`);
             
             if (isExpanded) {
                 this._adjustLeftPanelLayout();
