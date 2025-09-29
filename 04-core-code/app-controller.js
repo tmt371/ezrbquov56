@@ -93,7 +93,6 @@ export class AppController {
         this.eventAggregator.subscribe('driveModeChanged', (data) => delegate('handleDriveModeChange', data));
         this.eventAggregator.subscribe('accessoryCounterChanged', (data) => delegate('handleAccessoryCounterChange', data));
 
-        // [NEW] Subscribe to the new event for starting the remote selection dialog flow
         this.eventAggregator.subscribe('userInitiatedRemoteSelection', () => this._handleRemoteSelection());
     }
 
@@ -113,7 +112,7 @@ export class AppController {
         this.eventAggregator.subscribe('toggleFeeExclusion', (data) => this._handleToggleFeeExclusion(data));
     }
     
-    // --- [NEW] Methods for Remote Selection Dialog Flow ---
+    // --- Methods for Remote Selection Dialog Flow ---
 
     _cancelRemoteSelection() {
         this.uiService.setDriveAccessoryMode(null);
@@ -123,9 +122,7 @@ export class AppController {
 
     _setSelectedRemoteAndActivate(costKey) {
         this.uiService.setDriveSelectedRemoteCostKey(costKey);
-        // Activate the remote mode in the UI (highlights button, enables counters)
         this.detailConfigView.handleDriveModeChange({ mode: 'remote' });
-        // No need to recalculate here, the cost calculation happens on mode EXIT.
         this._publishStateChange();
     }
     
@@ -154,19 +151,31 @@ export class AppController {
         });
     }
 
+    /**
+     * [BUG FIX] Handles the remote selection process.
+     * It now checks the current state before initiating the dialog flow.
+     */
     _handleRemoteSelection() {
-        const layout = [
-            [{ type: 'button', text: 'Alpha', callback: () => this._showAlphaRemoteDialog(), closeOnClick: false }],
-            [{ type: 'button', text: 'Linx', callback: () => this._showLinxRemoteDialog(), closeOnClick: false }],
-            [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
-        ];
-        this.eventAggregator.publish('showConfirmationDialog', {
-            message: '請問你要用哪一廠牌遙控器？',
-            layout: layout
-        });
+        const currentMode = this.uiService.getState().driveAccessoryMode;
+
+        if (currentMode === 'remote') {
+            // If remote mode is already active, clicking again should exit the mode.
+            this.detailConfigView.handleDriveModeChange({ mode: 'remote' });
+        } else {
+            // If remote mode is not active, start the brand selection dialog flow.
+            const layout = [
+                [{ type: 'button', text: 'Alpha', callback: () => this._showAlphaRemoteDialog(), closeOnClick: false }],
+                [{ type: 'button', text: 'Linx', callback: () => this._showLinxRemoteDialog(), closeOnClick: false }],
+                [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
+            ];
+            this.eventAggregator.publish('showConfirmationDialog', {
+                message: '請問你要用哪一廠牌遙控器？',
+                layout: layout
+            });
+        }
     }
 
-    // --- End of New Methods ---
+    // --- End of Remote Selection Methods ---
 
     _handleToggleFeeExclusion({ feeType }) {
         this.uiService.toggleF2FeeExclusion(feeType);
