@@ -74,7 +74,6 @@ export class UIManager {
     }
 
     _adjustLeftPanelLayout() {
-        console.log("%c--- Adjusting Left Panel Layout ---", "color: blue; font-weight: bold;");
         const leftPanel = this.leftPanelElement;
         const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
@@ -85,14 +84,9 @@ export class UIManager {
         }
 
         const isKeyboardCollapsed = numericKeyboard.classList.contains('is-collapsed');
-        console.log(`%cKeyboard collapsed state: ${isKeyboardCollapsed}`, "color: purple;");
 
         // [BUG FIX] The entire layout calculation should ONLY run when the keyboard is visible.
-        // The previous "FALLBACK MODE" (the 'else' block) caused incorrect, full-height
-        // calculations when the keyboard was collapsed. By removing the 'else' block,
-        // the panel will retain its last calculated correct dimensions when the keyboard is hidden.
         if (!isKeyboardCollapsed) {
-            console.log("-> Entering PRECISION MODE (calculating based on keys).");
             const key7 = document.getElementById('key-7');
             const key0 = document.getElementById('key-0');
             const typeKey = document.getElementById('key-type');
@@ -104,13 +98,11 @@ export class UIManager {
             const key7Rect = key7.getBoundingClientRect();
             const key0Rect = key0.getBoundingClientRect();
             const typeKeyRect = typeKey.getBoundingClientRect();
-            console.log("Measured Key Coordinates:", { key7: key7Rect, key0: key0Rect, typeKey: typeKeyRect });
 
             if (key7Rect.width > 0) {
                 const dynamicTop = key7Rect.top;
                 const dynamicHeight = key0Rect.bottom - key7Rect.top;
                 const dynamicWidth = typeKeyRect.left + (typeKeyRect.width / 2);
-                console.log("%cCalculated Styles (Precision):", "color: green;", { top: dynamicTop, height: dynamicHeight, width: dynamicWidth });
                 
                 leftPanel.style.top = `${dynamicTop}px`;
                 leftPanel.style.height = `${dynamicHeight}px`;
@@ -119,26 +111,20 @@ export class UIManager {
                 console.warn("Keys have no width, precision layout skipped.");
             }
         }
-        console.log("%c--- Left Panel Layout Adjustment Finished ---", "color: blue; font-weight: bold;");
     }
 
     _initializeLeftPanelLayout() {
-        // The ResizeObserver ensures the layout is recalculated if the window size changes.
         const resizeObserver = new ResizeObserver(() => {
             if (this.leftPanelElement.classList.contains('is-expanded')) {
                 this._adjustLeftPanelLayout();
             }
         });
         resizeObserver.observe(this.appElement);
-
-        // BUG FIX: The MutationObserver below was the root cause of the layout issue
-        // and has been definitively removed.
     }
     
     _updateLeftPanelState(currentView) {
         if (this.leftPanelElement) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
-            console.log(`Updating left panel state. Is expanding? ${isExpanded}`);
             
             if (isExpanded) {
                 this._adjustLeftPanelLayout();
