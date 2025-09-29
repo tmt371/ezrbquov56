@@ -6,7 +6,6 @@ import { PanelComponent } from './panel-component.js';
 import { NotificationComponent } from './notification-component.js';
 import { DialogComponent } from './dialog-component.js';
 import { LeftPanelComponent } from './left-panel-component.js';
-import { RightPanelComponent } from './right-panel-component.js';
 
 export class UIManager {
     constructor(appElement, eventAggregator) {
@@ -19,6 +18,8 @@ export class UIManager {
         this.mSelButton = document.getElementById('key-m-sel');
         this.clearButton = document.getElementById('key-clear');
         this.leftPanelElement = document.getElementById('left-panel');
+        
+        this.cachedLeftPanelHeight = 0;
 
         const tableElement = document.getElementById('results-table');
         this.tableComponent = new TableComponent(tableElement);
@@ -35,11 +36,6 @@ export class UIManager {
             expandedClass: 'is-expanded',
             retractEventName: 'operationSuccessfulAutoHidePanel'
         });
-        
-        this.rightPanelComponent = new RightPanelComponent(
-            document.getElementById('function-panel'),
-            this.eventAggregator
-        );
 
         this.notificationComponent = new NotificationComponent({
             containerElement: document.getElementById('toast-container'),
@@ -52,7 +48,7 @@ export class UIManager {
         });
 
         this.initialize();
-        this._initializeLeftPanelLayout(); // Changed from previous version
+        this._initializeLeftPanelLayout();
     }
 
     initialize() {
@@ -66,66 +62,69 @@ export class UIManager {
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
         this.leftPanelComponent.render(state.ui, state.quoteData);
-        this.rightPanelComponent.render(state.ui);
         
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
         this._scrollToActiveCell(state);
     }
 
+    // [BUG FIX] This method is reinstated with robust logic focusing ONLY on vertical positioning.
     _adjustLeftPanelLayout() {
-        const leftPanel = this.leftPanelElement;
-        const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
+        const leftPanel = this.leftPanelElement;
 
-        if (!leftPanel || !appContainer || !numericKeyboard) return;
+        if (!numericKeyboard || !leftPanel) return;
 
-        const isKeyboardCollapsed = numericKeyboard.classList.contains('is-collapsed');
-
-        if (!isKeyboardCollapsed) {
+        // --- Height Calculation ---
+        // Calculate and cache the correct height ONCE, when the keyboard is visible.
+        if (this.cachedLeftPanelHeight === 0 && !numericKeyboard.classList.contains('is-collapsed')) {
             const key7 = document.getElementById('key-7');
-            const key0 = document.getElementById('key-0');
-            const typeKey = document.getElementById('key-type');
-            if (!key7 || !key0 || !typeKey) return; 
-
-            const key7Rect = key7.getBoundingClientRect();
-            const key0Rect = key0.getBoundingClientRect();
-            const typeKeyRect = typeKey.getBoundingClientRect();
-
-            if (key7Rect.width > 0) {
-                leftPanel.style.top = `${key7Rect.top}px`;
-                leftPanel.style.height = `${key0Rect.bottom - key7Rect.top}px`;
-                leftPanel.style.width = `${typeKeyRect.left + (typeKeyRect.width / 2)}px`;
-            }
-        } else {
-            const resultsPanel = this.appElement.querySelector('.results-panel');
-            if (resultsPanel) {
-                const resultsPanelRect = resultsPanel.getBoundingClientRect();
-                leftPanel.style.top = `${resultsPanelRect.top}px`;
-                leftPanel.style.height = `${resultsPanelRect.height}px`;
-                leftPanel.style.width = `${appContainer.getBoundingClientRect().width * 0.45}px`;
+            if (key7) {
+                const key7Rect = key7.getBoundingClientRect();
+                const keyHeight = key7Rect.height;
+                const gap = 5;
+                this.cachedLeftPanelHeight = (keyHeight * 4) + (gap * 3);
             }
         }
+        const panelHeight = this.cachedLeftPanelHeight || 155; // Use fallback height
+
+        // --- Top Position Calculation ---
+        const keyboardPanelRect = numericKeyboard.getBoundingClientRect();
+        
+        // The left panel's top should align with the TOP of the buttons,
+        // which is the keyboard panel's top + its top padding.
+        const keyboardTopPadding = 38; // From virtual-keyboard.css
+        const panelTop = keyboardPanelRect.top + keyboardTopPadding;
+        
+        // --- Apply ONLY Vertical Styles ---
+        // The `left` and `width` properties are now exclusively controlled by CSS.
+        leftPanel.style.top = panelTop + 'px';
+        leftPanel.style.height = panelHeight + 'px';
     }
 
+    // [REFACTORED] This logic ensures the layout is calculated at all critical moments.
     _initializeLeftPanelLayout() {
-        // The ResizeObserver ensures the layout is recalculated if the window size changes.
+        // Use a ResizeObserver to adjust on window resize.
         const resizeObserver = new ResizeObserver(() => {
-            if (this.leftPanelElement.classList.contains('is-expanded')) {
-                this._adjustLeftPanelLayout();
-            }
+            this._adjustLeftPanelLayout();
         });
         resizeObserver.observe(this.appElement);
+        
+        // Use a MutationObserver to adjust when the keyboard's class changes (collapsed/expanded).
+        new MutationObserver(() => {
+            // A short delay helps ensure the keyboard's animation is complete before measuring.
+            setTimeout(() => this._adjustLeftPanelLayout(), 50);
+        }).observe(this.numericKeyboardPanel, { attributes: true, attributeFilter: ['class'] });
+
+        // Initial adjustment after a brief delay to ensure DOM is ready.
+        setTimeout(() => this._adjustLeftPanelLayout(), 100);
     }
     
     _updateLeftPanelState(currentView) {
         if (this.leftPanelElement) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
-            
-            if (isExpanded) {
-                this._adjustLeftPanelLayout();
-            }
-            
+            // We ensure the layout is correct *before* toggling the class to prevent flicker.
+            this._adjustLeftPanelLayout();
             this.leftPanelElement.classList.toggle('is-expanded', isExpanded);
         }
     }
