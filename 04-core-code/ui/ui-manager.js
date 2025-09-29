@@ -145,6 +145,9 @@ export class UIManager {
             }
         });
         resizeObserver.observe(this.appElement);
+
+        // BUG FIX: The MutationObserver below was the root cause of the layout issue
+        // and has been definitively removed.
     }
     
     _updateLeftPanelState(currentView) {
