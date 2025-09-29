@@ -122,10 +122,34 @@ export class QuoteService {
         }
     }
 
-    // [NEW] Adds a method to update the calculated remote control cost sum.
     updateRemoteCostSum(cost) {
         if (this.quoteData.summary && this.quoteData.summary.accessories) {
             this.quoteData.summary.accessories.remoteCostSum = cost;
+        }
+    }
+
+    // [NEW] Add setter methods for the new accessory cost sum fields
+    updateWinderCostSum(cost) {
+        if (this.quoteData.summary && this.quoteData.summary.accessories) {
+            this.quoteData.summary.accessories.winderCostSum = cost;
+        }
+    }
+
+    updateMotorCostSum(cost) {
+        if (this.quoteData.summary && this.quoteData.summary.accessories) {
+            this.quoteData.summary.accessories.motorCostSum = cost;
+        }
+    }
+
+    updateChargerCostSum(cost) {
+        if (this.quoteData.summary && this.quoteData.summary.accessories) {
+            this.quoteData.summary.accessories.chargerCostSum = cost;
+        }
+    }
+
+    updateCordCostSum(cost) {
+        if (this.quoteData.summary && this.quoteData.summary.accessories) {
+            this.quoteData.summary.accessories.cordCostSum = cost;
         }
     }
 

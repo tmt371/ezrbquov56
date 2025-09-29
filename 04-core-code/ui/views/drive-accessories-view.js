@@ -23,10 +23,25 @@ export class DriveAccessoriesView {
 
         // [MODIFIED] When exiting a mode, perform necessary calculations.
         if (currentMode) {
-            // Specifically, when exiting 'remote' mode, calculate and store its cost.
-            if (currentMode === 'remote') {
-                this._calculateAndStoreRemoteCost();
+            // Trigger cost calculation for the mode being exited
+            switch (currentMode) {
+                case 'winder':
+                    this._calculateAndStoreWinderCost();
+                    break;
+                case 'motor':
+                    this._calculateAndStoreMotorCost();
+                    break;
+                case 'remote':
+                    this._calculateAndStoreRemoteCost();
+                    break;
+                case 'charger':
+                    this._calculateAndStoreChargerCost();
+                    break;
+                case 'cord':
+                    this._calculateAndStoreCordCost();
+                    break;
             }
+            // Always recalculate the sale prices after any mode change.
             this.recalculateAllDriveAccessoryPrices();
         }
         
@@ -35,44 +50,91 @@ export class DriveAccessoriesView {
         if (newMode) {
             const message = this._getHintMessage(newMode);
             this.eventAggregator.publish('showNotification', { message });
-
-            const items = this.quoteService.getItems();
-            const hasMotor = items.some(item => !!item.motor);
-            if (hasMotor) {
-                // Keep default behavior for charger, but not for remote anymore
-                if (newMode === 'charger' && this.uiService.getState().driveChargerCount === 0) {
-                    this.uiService.setDriveAccessoryCount('charger', 1);
-                }
-            }
         }
 
         this.publish();
     }
 
-    /**
-     * [NEW] Calculates the total cost of selected remotes and stores it in the quoteData state.
-     */
+    // --- [NEW] Private methods for calculating and storing accessory costs ---
+
+    _calculateAndStoreWinderCost() {
+        const items = this.quoteService.getItems();
+        const count = items.filter(item => item.winder === 'HD').length;
+        if (count > 0) {
+            const totalCost = this.calculationService.calculateAccessoryPrice(
+                this.quoteService.getCurrentProductType(),
+                'winder',
+                { count: count, costKey: 'cost-winder' }
+            );
+            this.quoteService.updateWinderCostSum(totalCost);
+        } else {
+            this.quoteService.updateWinderCostSum(null);
+        }
+    }
+
+    _calculateAndStoreMotorCost() {
+        const items = this.quoteService.getItems();
+        const count = items.filter(item => !!item.motor).length;
+        if (count > 0) {
+            const totalCost = this.calculationService.calculateAccessoryPrice(
+                this.quoteService.getCurrentProductType(),
+                'motor',
+                { count: count, costKey: 'cost-motor' }
+            );
+            this.quoteService.updateMotorCostSum(totalCost);
+        } else {
+            this.quoteService.updateMotorCostSum(null);
+        }
+    }
+
     _calculateAndStoreRemoteCost() {
         const state = this.uiService.getState();
         const remoteCostKey = state.driveSelectedRemoteCostKey;
         const remoteCount = state.driveRemoteCount;
 
-        // We only calculate if a specific cost key has been selected.
         if (remoteCostKey && remoteCount > 0) {
-            // Note: This relies on a new method in calculation-service which we will add.
-            // For now, we assume it exists and will calculate the cost.
-            // The sale price is calculated separately in recalculateAllDriveAccessoryPrices.
             const totalCost = this.calculationService.calculateAccessoryPrice(
                 this.quoteService.getCurrentProductType(),
-                'remote', // We tell the service it's a remote
-                { count: remoteCount, costKey: remoteCostKey } // We pass the cost key
+                'remote',
+                { count: remoteCount, costKey: remoteCostKey }
             );
             this.quoteService.updateRemoteCostSum(totalCost);
         } else {
-            // If no remote is selected or quantity is zero, ensure the cost is null.
             this.quoteService.updateRemoteCostSum(null);
         }
     }
+
+    _calculateAndStoreChargerCost() {
+        const state = this.uiService.getState();
+        const count = state.driveChargerCount;
+        if (count > 0) {
+            const totalCost = this.calculationService.calculateAccessoryPrice(
+                this.quoteService.getCurrentProductType(),
+                'charger',
+                { count: count, costKey: 'cost-charger' }
+            );
+            this.quoteService.updateChargerCostSum(totalCost);
+        } else {
+            this.quoteService.updateChargerCostSum(null);
+        }
+    }
+
+    _calculateAndStoreCordCost() {
+        const state = this.uiService.getState();
+        const count = state.driveCordCount;
+        if (count > 0) {
+            const totalCost = this.calculationService.calculateAccessoryPrice(
+                this.quoteService.getCurrentProductType(),
+                'cord',
+                { count: count, costKey: 'cost-3mcord' }
+            );
+            this.quoteService.updateCordCostSum(totalCost);
+        } else {
+            this.quoteService.updateCordCostSum(null);
+        }
+    }
+
+    // --- End of new methods ---
 
     handleTableCellClick({ rowIndex, column }) {
         const { driveAccessoryMode } = this.uiService.getState();
@@ -178,7 +240,6 @@ export class DriveAccessoriesView {
         grandTotal += motorPrice;
         
         const remoteCount = state.driveRemoteCount;
-        // The sale price calculation remains unchanged as per the instructions.
         const remotePrice = this.calculationService.calculateAccessoryPrice(productType, 'remote', { 
             count: remoteCount
         });
