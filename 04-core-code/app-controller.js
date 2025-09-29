@@ -93,7 +93,6 @@ export class AppController {
         this.eventAggregator.subscribe('driveModeChanged', (data) => delegate('handleDriveModeChange', data));
         this.eventAggregator.subscribe('accessoryCounterChanged', (data) => delegate('handleAccessoryCounterChange', data));
 
-        // [NEW] Subscribe to the new event for starting the remote selection dialog flow
         this.eventAggregator.subscribe('userInitiatedRemoteSelection', () => this._handleRemoteSelection());
     }
 
@@ -113,32 +112,21 @@ export class AppController {
         this.eventAggregator.subscribe('toggleFeeExclusion', (data) => this._handleToggleFeeExclusion(data));
     }
     
-    // --- [NEW] Methods for Remote Selection Dialog Flow ---
+    // --- [BUG FIX] Methods for Remote Selection Dialog Flow ---
 
-    /**
-     * Cancels the remote selection process and resets the UI state.
-     */
     _cancelRemoteSelection() {
         this.uiService.setDriveAccessoryMode(null);
         this.uiService.setDriveSelectedRemoteTypeKey(null);
         this._publishStateChange();
     }
 
-    /**
-     * Sets the selected remote type, activates the remote mode, and recalculates prices.
-     * @param {string} remoteTypeKey - The key for the selected remote (e.g., 'cost-A-1ch-remote').
-     */
     _setSelectedRemoteAndActivate(remoteTypeKey) {
         this.uiService.setDriveSelectedRemoteTypeKey(remoteTypeKey);
         this.detailConfigView.handleDriveModeChange({ mode: 'remote' });
-        // After setting the mode, we manually call the recalculation from the view
         this.detailConfigView.driveAccessoriesView.recalculateAllDriveAccessoryPrices();
         this._publishStateChange();
     }
     
-    /**
-     * Displays the dialog for selecting an Alpha remote model.
-     */
     _showAlphaRemoteDialog() {
         const layout = [
             [{ type: 'button', text: '1CH', callback: () => this._setSelectedRemoteAndActivate('cost-A-1ch-remote') }],
@@ -152,9 +140,6 @@ export class AppController {
         });
     }
 
-    /**
-     * Displays the dialog for selecting a Linx remote model.
-     */
     _showLinxRemoteDialog() {
         const layout = [
             [{ type: 'button', text: '1CH', callback: () => this._setSelectedRemoteAndActivate('cost-L-1ch-remote') }],
@@ -167,13 +152,12 @@ export class AppController {
         });
     }
 
-    /**
-     * Starts the remote selection process by showing the brand selection dialog.
-     */
     _handleRemoteSelection() {
         const layout = [
-            [{ type: 'button', text: 'Alpha', callback: () => this._showAlphaRemoteDialog() }],
-            [{ type: 'button', text: 'Linx', callback: () => this._showLinxRemoteDialog() }],
+            // [BUG FIX] Add closeOnClick: false to prevent the dialog from closing prematurely.
+            // This allows the callback to replace the dialog's content for the next step.
+            [{ type: 'button', text: 'Alpha', callback: () => this._showAlphaRemoteDialog(), closeOnClick: false }],
+            [{ type: 'button', text: 'Linx', callback: () => this._showLinxRemoteDialog(), closeOnClick: false }],
             [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
         ];
         this.eventAggregator.publish('showConfirmationDialog', {
@@ -182,7 +166,7 @@ export class AppController {
         });
     }
 
-    // --- End of New Methods ---
+    // --- End of Bug Fix ---
 
     _handleToggleFeeExclusion({ feeType }) {
         this.uiService.toggleF2FeeExclusion(feeType);

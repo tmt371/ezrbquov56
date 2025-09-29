@@ -84,7 +84,11 @@ export class DialogComponent {
                         if (cellConfig.callback && typeof cellConfig.callback === 'function') {
                             cellConfig.callback();
                         }
-                        this.hide();
+                        // [MODIFIED] Only hide the dialog if the button's configuration does not explicitly prevent it.
+                        // This allows for multi-step dialogs where intermediate buttons should not close the dialog.
+                        if (cellConfig.closeOnClick !== false) {
+                            this.hide();
+                        }
                     });
                     cell.appendChild(button);
 
