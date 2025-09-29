@@ -87,6 +87,10 @@ export class UIManager {
         const isKeyboardCollapsed = numericKeyboard.classList.contains('is-collapsed');
         console.log(`%cKeyboard collapsed state: ${isKeyboardCollapsed}`, "color: purple;");
 
+        // [BUG FIX] The entire layout calculation should ONLY run when the keyboard is visible.
+        // The previous "FALLBACK MODE" (the 'else' block) caused incorrect, full-height
+        // calculations when the keyboard was collapsed. By removing the 'else' block,
+        // the panel will retain its last calculated correct dimensions when the keyboard is hidden.
         if (!isKeyboardCollapsed) {
             console.log("-> Entering PRECISION MODE (calculating based on keys).");
             const key7 = document.getElementById('key-7');
@@ -113,25 +117,6 @@ export class UIManager {
                 leftPanel.style.width = `${dynamicWidth}px`;
             } else {
                 console.warn("Keys have no width, precision layout skipped.");
-            }
-        } else {
-            console.log("-> Entering FALLBACK MODE (calculating based on results panel).");
-            const resultsPanel = this.appElement.querySelector('.results-panel');
-            if (resultsPanel) {
-                const resultsPanelRect = resultsPanel.getBoundingClientRect();
-                const appContainerRect = appContainer.getBoundingClientRect();
-                console.log("Measured Container Coordinates:", { resultsPanel: resultsPanelRect, appContainer: appContainerRect });
-
-                const dynamicTop = resultsPanelRect.top;
-                const dynamicHeight = resultsPanelRect.height;
-                const dynamicWidth = appContainerRect.width * 0.45;
-                console.log("%cCalculated Styles (Fallback):", "color: orange;", { top: dynamicTop, height: dynamicHeight, width: dynamicWidth });
-
-                leftPanel.style.top = `${dynamicTop}px`;
-                leftPanel.style.height = `${dynamicHeight}px`;
-                leftPanel.style.width = `${dynamicWidth}px`;
-            } else {
-                 console.error("Fallback mode aborted: Results panel not found.");
             }
         }
         console.log("%c--- Left Panel Layout Adjustment Finished ---", "color: blue; font-weight: bold;");
