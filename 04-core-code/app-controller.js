@@ -50,7 +50,7 @@ export class AppController {
         this.eventAggregator.subscribe('userToggledMultiSelectMode', () => delegate('handleToggleMultiSelectMode'));
         this.eventAggregator.subscribe('userChoseSaveThenLoad', () => delegate('handleSaveThenLoad'));
         this.eventAggregator.subscribe('typeCellLongPressed', (data) => delegate('handleTypeCellLongPress', data));
-        this.eventAggregator.subscribe('typeButtonLongPressed', (data) => delegate('handleTypeButtonLongPressed', data));
+        this.eventAggregator.subscribe('typeButtonLongPressed', (data) => delegate('handleTypeButtonLongPress', data));
         this.eventAggregator.subscribe('userRequestedMultiTypeSet', () => delegate('handleMultiTypeSet'));
     }
 
@@ -104,7 +104,6 @@ export class AppController {
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());
         this.eventAggregator.subscribe('fileLoaded', (data) => this._handleFileLoad(data));
         
-        // [NEW] Subscribe to the event from the welcome dialog to save the cost discount
         this.eventAggregator.subscribe('costDiscountEntered', (data) => this._handleCostDiscountEntered(data));
     }
 
@@ -115,15 +114,10 @@ export class AppController {
         this.eventAggregator.subscribe('toggleFeeExclusion', (data) => this._handleToggleFeeExclusion(data));
     }
     
-    // --- [NEW] Method to handle cost discount ---
     _handleCostDiscountEntered({ percentage }) {
         this.quoteService.setCostDiscount(percentage);
-        // For debugging, you can log the data to confirm it's saved.
-        // console.log('Cost discount saved:', this.quoteService.getQuoteData().costDiscountPercentage);
     }
     
-    // --- Methods for Remote Selection Dialog Flow ---
-
     _cancelRemoteSelection() {
         this.uiService.setDriveAccessoryMode(null);
         this.uiService.setDriveSelectedRemoteCostKey(null);
@@ -144,7 +138,8 @@ export class AppController {
             [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
         ];
         this.eventAggregator.publish('showConfirmationDialog', {
-            message: '請問你要用哪一款遙控器？',
+            // [MODIFIED] Translated message to English
+            message: 'Which model of remote control would you like to use?',
             layout: layout
         });
     }
@@ -156,7 +151,8 @@ export class AppController {
             [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
         ];
         this.eventAggregator.publish('showConfirmationDialog', {
-            message: '請問你要用哪一款遙控器？',
+            // [MODIFIED] Translated message to English
+            message: 'Which model of remote control would you like to use?',
             layout: layout
         });
     }
@@ -173,7 +169,8 @@ export class AppController {
                 [{ type: 'button', text: '取消', className: 'secondary', callback: () => this._cancelRemoteSelection() }]
             ];
             this.eventAggregator.publish('showConfirmationDialog', {
-                message: '請問你要用哪一廠牌遙控器？',
+                // [MODIFIED] Translated message to English
+                message: 'Which brand of remote control would you like to use?',
                 layout: layout
             });
         }

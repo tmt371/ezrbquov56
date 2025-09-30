@@ -119,8 +119,9 @@ export class K2FabricView {
                 }
             }
 
-            if (activeEditMode === 'K2_LF_SELECT' && item.fabricType !== 'B2') {
-                this.eventAggregator.publish('showNotification', { message: 'Only items with TYPE "B2" can be selected.', type: 'error' });
+            // [MODIFIED] Changed the selection rule from 'is not B2' to 'is B1'.
+            if (activeEditMode === 'K2_LF_SELECT' && item.fabricType === 'B1') {
+                this.eventAggregator.publish('showNotification', { message: 'Items with TYPE "B1" cannot be selected for this operation.', type: 'error' });
                 return;
             }
             this.uiService.toggleLFSelection(rowIndex);
@@ -184,12 +185,6 @@ export class K2FabricView {
                 const field = input.dataset.field;
 
                 if (type !== 'LF') {
-                    // [BUG FIX] The line below was removed. It was violating architecture by attempting
-                    // to access a DOM element property from the logic layer, causing a crash.
-                    // The correct logic for this already exists in the rendering layer (left-panel-component.js).
-                    // --- const hasB2 = presentTypes.has('B2'); 
-                    // --- this.lfButton.disabled = (activeEditMode !== null && activeEditMode !== 'K2_LF_SELECT') || !hasB2;
-
                     const isEnabled = presentTypes.has(type);
                     input.disabled = !isEnabled;
 
