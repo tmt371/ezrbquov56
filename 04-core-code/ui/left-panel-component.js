@@ -10,6 +10,9 @@ export class LeftPanelComponent {
         }
         this.panelElement = panelElement;
 
+        // --- [NEW] Get a reference to the panel toggle handle ---
+        this.panelToggle = document.getElementById('left-panel-toggle');
+
         // --- DOM Element References within the Left Panel ---
         this.locationButton = document.getElementById('btn-focus-location');
         this.locationInput = document.getElementById('location-input-box');
@@ -84,6 +87,12 @@ export class LeftPanelComponent {
             button.classList.toggle('active', isThisButtonActive);
             button.disabled = isInEditMode && !isThisButtonActive;
         });
+
+        // [NEW] Disable the panel toggle handle when any edit mode is active.
+        if (this.panelToggle) {
+            this.panelToggle.style.pointerEvents = isInEditMode ? 'none' : 'auto';
+            this.panelToggle.style.opacity = isInEditMode ? '0.5' : '1';
+        }
 
         this.tabContents.forEach(content => {
             const isThisContentActive = activeContentTarget && `#${content.id}` === activeContentTarget;

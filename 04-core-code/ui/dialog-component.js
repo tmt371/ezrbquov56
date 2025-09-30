@@ -20,7 +20,6 @@ export class DialogComponent {
     }
 
     initialize() {
-        // [MODIFIED] The welcome dialog is now an interactive form for cost discount input.
         this.eventAggregator.subscribe('showWelcomeDialog', () => {
             this.show({
                 message: '請問捲簾所套用的成本折扣數為多少％？',
@@ -38,6 +37,7 @@ export class DialogComponent {
                             type: 'button', 
                             text: '確定', 
                             colspan: 3,
+                            className: 'primary-confirm-button', // Add a class to identify the confirm button
                             callback: () => {
                                 const inputElement = document.getElementById('dialog-input-cost-dis');
                                 const value = inputElement.value;
@@ -48,15 +48,12 @@ export class DialogComponent {
                                         message: '輸入無效。請輸入 0 到 100 之間的正整數。', 
                                         type: 'error' 
                                     });
-                                    // By returning 'false', we can potentially prevent the dialog from closing,
-                                    // but we need to modify the event listener logic in show() for that.
-                                    // For now, we just show an error. The user will have to reopen if they make a mistake.
-                                    // Let's refine this by not closing on invalid input.
-                                    return false; // Indicate failure
+                                    // By returning false, we prevent the dialog from closing on invalid input.
+                                    return false;
                                 } else {
                                     this.eventAggregator.publish('costDiscountEntered', { percentage });
                                     this.eventAggregator.publish('welcomeDialogConfirmed');
-                                    return true; // Indicate success
+                                    return true; // Indicate success, allowing the dialog to close.
                                 }
                             }
                         }
@@ -118,7 +115,6 @@ export class DialogComponent {
                         let shouldHide = true;
                         if (cellConfig.callback && typeof cellConfig.callback === 'function') {
                             const callbackResult = cellConfig.callback();
-                            // If the callback returns false, it signals that we should not close the dialog.
                             if (callbackResult === false) {
                                 shouldHide = false;
                             }
@@ -131,7 +127,6 @@ export class DialogComponent {
                     cell.appendChild(button);
 
                 } else if (cellConfig.type === 'input') {
-                    // [NEW] Add support for creating input fields
                     cell.classList.add('input-cell');
                     const input = document.createElement('input');
                     input.className = 'dialog-input';
@@ -140,7 +135,22 @@ export class DialogComponent {
                     input.placeholder = cellConfig.placeholder || '';
                     input.min = 0;
                     input.max = 100;
+                    
+                    // [NEW] Add event listener for Enter key confirmation
+                    input.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault(); // Prevent default form submission
+                            // Find the primary confirm button in the dialog and click it
+                            const confirmButton = this.buttonsContainer.querySelector('.primary-confirm-button');
+                            if (confirmButton) {
+                                confirmButton.click();
+                            }
+                        }
+                    });
                     cell.appendChild(input);
+
+                    // [NEW] Set autofocus on the input field
+                    setTimeout(() => input.focus(), 0);
 
                 } else if (cellConfig.type === 'text') {
                     cell.classList.add('text-cell');

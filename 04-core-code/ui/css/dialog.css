@@ -24,40 +24,60 @@
 
 .dialog-box {
     background-color: white;
-    /* [REFACTORED] Reduced padding for a more compact layout */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     text-align: center;
-    /* [REFACTORED] Adjusted margin-top to move the dialog up by approx 20px */
     margin-top: calc( (100vh - 20vh) / 3 * 2 - 50% - 20px );
     max-width: 600px;
     width: 90%;
-    /* [NEW] Reduced base font size for all elements inside the dialog */
     font-size: 85%;
+    
+    /* [NEW] Set the aspect ratio to 4:3 */
+    aspect-ratio: 4 / 3;
+    /* [NEW] To make the aspect ratio work well, we need to use flexbox for layout */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .dialog-message {
     margin-top: 0;
-    margin-bottom: 15px; /* Reduced margin */
+    margin-bottom: 15px;
     font-size: 1.1em;
     line-height: 1.5;
     color: #333;
+    flex-shrink: 0; /* Prevent message from shrinking */
 }
 
 .dialog-buttons {
     display: grid;
     grid-template-columns: 1fr 2fr 1fr;
-    /* [REFACTORED] Reduced row and column gap by 70% */
     gap: 3px 10px; 
     align-items: center;
+    width: 100%; /* Ensure it takes full width of the dialog box */
+}
+
+/* [NEW] Styles for the input field cell and the input itself */
+.dialog-grid-cell.input-cell {
+    grid-column: span 3; /* Make input span all columns */
+    padding: 10px 0;
+}
+
+.dialog-input {
+    width: 80%;
+    padding: 10px;
+    font-size: 1.2em;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
 }
 
 .dialog-grid-cell.text-cell {
     text-align: left;
     font-size: 0.9em;
     color: #555;
-    padding: 0 5px; /* Reduced padding */
+    padding: 0 5px;
 }
 
 .dialog-grid-cell.button-cell {
@@ -72,7 +92,6 @@
 
 .dialog-button {
     width: 100%;
-    /* [REFACTORED] Reduced padding */
     padding: 8px 10px; 
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -99,7 +118,6 @@
     background-color: #5a6268;
 }
 
-/* [NEW] Media query specifically for smaller screens to further tighten the layout */
 @media (max-height: 700px) {
     .dialog-box {
         padding: 15px;

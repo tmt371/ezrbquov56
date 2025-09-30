@@ -58,7 +58,6 @@ export const initialState = {
         issueDate: null,
         dueDate: null,
         status: "Configuring",
-        // [NEW] Add a field for the cost discount percentage
         costDiscountPercentage: 0,
         customer: { 
             name: "",
@@ -80,8 +79,7 @@ export const initialState = {
                 motorCostSum: null,
                 chargerCostSum: null,
                 cordCostSum: null,
-                // [NEW] Add a field to store the calculated dual bracket cost sum
-                dualCostSum: null
+                // [REMOVED] The dualCostSum field has been removed as per the instructions.
             }
         }
     }
